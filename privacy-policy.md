@@ -1,5 +1,5 @@
 Heat Load Privacy Policy
-Effective date: [INSERT DATE]
+Effective date: 12 Feb 2026
 App: Heat Load
 Developer contact: app.inventory.me@gmail.com
 
