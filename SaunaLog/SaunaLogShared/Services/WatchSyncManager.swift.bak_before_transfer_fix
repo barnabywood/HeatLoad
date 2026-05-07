@@ -1,0 +1,159 @@
+import Foundation
+import Combine
+import WatchConnectivity
+
+@MainActor
+public final class WatchSyncManager: NSObject, ObservableObject {
+    private enum Keys {
+        static let payload = "payload"
+        static let trialSessionsCompleted = "trialSessionsCompleted"
+        static let trialLifetimeSessionsCompleted = "trialLifetimeSessionsCompleted"
+        static let trialHasUnlocked = "trialHasUnlocked"
+        static let presetSeconds = "presetSeconds"
+        static let selectedPresetSeconds = "selectedPresetSeconds"
+    }
+
+    public static let shared = WatchSyncManager()
+
+    @Published public private(set) var isReachable = false
+    public var onSessionReceived: ((HeatSession) -> Void)?
+    public var onTrialProgressReceived: ((Int, Int, Bool) -> Void)?
+    public var onPresetsReceived: (([Int], Int) -> Void)?
+
+    private let session = WCSession.default
+
+    private override init() {
+        super.init()
+    }
+
+    public func activate() {
+        guard WCSession.isSupported() else { return }
+        session.delegate = self
+        session.activate()
+    }
+
+    public func send(session heatSession: HeatSession) {
+        guard WCSession.isSupported() else { return }
+
+        do {
+            let payload = try JSONEncoder().encode(SessionSyncPayload(session: heatSession))
+
+            if session.isReachable {
+                session.sendMessageData(payload, replyHandler: nil) { _ in }
+            } else {
+                var context = session.applicationContext
+                context[Keys.payload] = payload
+                try session.updateApplicationContext(context)
+            }
+        } catch {
+            // Intentionally ignored for starter template.
+        }
+    }
+
+    public func sendTrialProgress(sessionsCompleted: Int, lifetimeSessionsCompleted: Int, hasUnlocked: Bool) {
+        guard WCSession.isSupported() else { return }
+
+        let message: [String: Any] = [
+            Keys.trialSessionsCompleted: sessionsCompleted,
+            Keys.trialLifetimeSessionsCompleted: lifetimeSessionsCompleted,
+            Keys.trialHasUnlocked: hasUnlocked
+        ]
+
+        if session.isReachable {
+            session.sendMessage(message, replyHandler: nil) { _ in }
+        } else {
+            do {
+                var context = session.applicationContext
+                context[Keys.trialSessionsCompleted] = sessionsCompleted
+                context[Keys.trialLifetimeSessionsCompleted] = lifetimeSessionsCompleted
+                context[Keys.trialHasUnlocked] = hasUnlocked
+                try session.updateApplicationContext(context)
+            } catch {
+                // Intentionally ignored for starter template.
+            }
+        }
+    }
+
+    public func sendPresets(_ presetSeconds: [Int], selectedPresetSeconds: Int) {
+        guard WCSession.isSupported(), presetSeconds.count == 4 else { return }
+
+        let message: [String: Any] = [
+            Keys.presetSeconds: presetSeconds,
+            Keys.selectedPresetSeconds: selectedPresetSeconds
+        ]
+
+        if session.isReachable {
+            session.sendMessage(message, replyHandler: nil) { _ in }
+        } else {
+            do {
+                var context = session.applicationContext
+                context[Keys.presetSeconds] = presetSeconds
+                context[Keys.selectedPresetSeconds] = selectedPresetSeconds
+                try session.updateApplicationContext(context)
+            } catch {
+                // Intentionally ignored for starter template.
+            }
+        }
+    }
+}
+
+extension WatchSyncManager: WCSessionDelegate {
+    public func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: Error?) {
+        isReachable = session.isReachable
+    }
+
+#if os(iOS)
+    public func sessionDidBecomeInactive(_ session: WCSession) {}
+
+    public func sessionDidDeactivate(_ session: WCSession) {
+        session.activate()
+    }
+#endif
+
+    public func sessionReachabilityDidChange(_ session: WCSession) {
+        Task { @MainActor [weak self] in
+            self?.isReachable = session.isReachable
+        }
+    }
+
+    public func session(_ session: WCSession, didReceiveApplicationContext applicationContext: [String : Any]) {
+        handle(context: applicationContext)
+    }
+
+    public func session(_ session: WCSession, didReceiveMessageData messageData: Data) {
+        handle(data: messageData)
+    }
+
+    public func session(_ session: WCSession, didReceiveMessage message: [String : Any]) {
+        handle(context: message)
+    }
+
+    private func handle(context: [String: Any]) {
+        if let data = context[Keys.payload] as? Data {
+            handle(data: data)
+        }
+
+        if let sessionsCompleted = context[Keys.trialSessionsCompleted] as? Int,
+           let lifetimeSessionsCompleted = context[Keys.trialLifetimeSessionsCompleted] as? Int,
+           let hasUnlocked = context[Keys.trialHasUnlocked] as? Bool {
+            Task { @MainActor [weak self] in
+                self?.onTrialProgressReceived?(sessionsCompleted, lifetimeSessionsCompleted, hasUnlocked)
+            }
+        }
+
+        if let presetSeconds = context[Keys.presetSeconds] as? [Int],
+           presetSeconds.count == 4,
+           let selectedPresetSeconds = context[Keys.selectedPresetSeconds] as? Int {
+            Task { @MainActor [weak self] in
+                self?.onPresetsReceived?(presetSeconds, selectedPresetSeconds)
+            }
+        }
+    }
+
+    private func handle(data: Data) {
+        guard let payload = try? JSONDecoder().decode(SessionSyncPayload.self, from: data) else { return }
+        Task { @MainActor [weak self] in
+            self?.onSessionReceived?(payload.session)
+        }
+    }
+}
