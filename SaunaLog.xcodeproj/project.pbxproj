@@ -46,6 +46,7 @@
 				SaunaLogShared/Models/HeatSession.swift,
 				SaunaLogShared/Models/SyncPayload.swift,
 				SaunaLogShared/Services/HealthKitManager.swift,
+				SaunaLogShared/Services/L10n.swift,
 				SaunaLogShared/Services/PurchaseManager.swift,
 				SaunaLogShared/Services/SessionStore.swift,
 				SaunaLogShared/Services/TrialManager.swift,
@@ -189,6 +190,13 @@
 			knownRegions = (
 				en,
 				Base,
+				de,
+				fi,
+				sv,
+				ja,
+				nb,
+				da,
+				nl,
 			);
 			mainGroup = B4A7A56C2F3CF566002FEA11;
 			minimizedProjectReferenceProxies = 1;
@@ -374,7 +382,7 @@
 				CODE_SIGN_ENTITLEMENTS = SaunaLog/SaunaLog.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 10;
+				CURRENT_PROJECT_VERSION = 17;
 				DEVELOPMENT_TEAM = 59QBGX599U;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -395,7 +403,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 2.3;
+				MARKETING_VERSION = 2.3.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.barnabywood.saunalog;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
@@ -419,7 +427,7 @@
 				CODE_SIGN_ENTITLEMENTS = SaunaLog/SaunaLog.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 10;
+				CURRENT_PROJECT_VERSION = 17;
 				DEVELOPMENT_TEAM = 59QBGX599U;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -440,7 +448,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 2.3;
+				MARKETING_VERSION = 2.3.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.barnabywood.saunalog;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
@@ -463,7 +471,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = "SaunaLogWatchApp Watch App/SaunaLogWatchApp Watch App.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 10;
+				CURRENT_PROJECT_VERSION = 17;
 				DEVELOPMENT_TEAM = 59QBGX599U;
 				ENABLE_PREVIEWS = NO;
 				"EXCLUDED_ARCHS[sdk=watchsimulator*]" = x86_64;
@@ -477,7 +485,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.3;
+				MARKETING_VERSION = 2.3.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.barnabywood.saunalog.watchkitapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = watchos;
@@ -501,7 +509,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = "SaunaLogWatchApp Watch App/SaunaLogWatchApp Watch App.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 10;
+				CURRENT_PROJECT_VERSION = 17;
 				DEVELOPMENT_TEAM = 59QBGX599U;
 				ENABLE_PREVIEWS = NO;
 				"EXCLUDED_ARCHS[sdk=watchsimulator*]" = x86_64;
@@ -515,7 +523,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.3;
+				MARKETING_VERSION = 2.3.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.barnabywood.saunalog.watchkitapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = watchos;

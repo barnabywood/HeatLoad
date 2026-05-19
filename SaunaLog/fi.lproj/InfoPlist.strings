@@ -1,0 +1,3 @@
+"CFBundleDisplayName" = "Sauna Log";
+"NSHealthShareUsageDescription" = "Sauna Log lukee sykkeesi sauna- ja höyryhuoneistuntojen aikana, jotta jokainen istunto voidaan kirjata tarkasti Apple Terveys -appiin.";
+"NSHealthUpdateUsageDescription" = "Sauna Log kirjoittaa sauna- ja höyryhuoneharjoitukset, mukaan lukien keston ja kalorit, Apple Terveys -appiin.";

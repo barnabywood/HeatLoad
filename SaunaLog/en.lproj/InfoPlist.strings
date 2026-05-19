@@ -1,0 +1,3 @@
+"CFBundleDisplayName" = "Sauna Log";
+"NSHealthShareUsageDescription" = "Sauna Log reads your heart rate during sauna and steam sessions so each session can be logged accurately to Apple Health.";
+"NSHealthUpdateUsageDescription" = "Sauna Log writes sauna and steam workout sessions, including duration and calories, to Apple Health.";

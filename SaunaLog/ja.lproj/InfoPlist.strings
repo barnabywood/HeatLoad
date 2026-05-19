@@ -1,0 +1,3 @@
+"CFBundleDisplayName" = "Sauna Log";
+"NSHealthShareUsageDescription" = "Sauna Logは、サウナやスチームのセッション中の心拍数を読み取り、各セッションをAppleヘルスケアに正確に記録します。";
+"NSHealthUpdateUsageDescription" = "Sauna Logは、時間とカロリーを含むサウナやスチームのワークアウトをAppleヘルスケアに書き込みます。";

@@ -1,0 +1,3 @@
+"CFBundleDisplayName" = "Sauna Log";
+"NSHealthShareUsageDescription" = "Sauna Log læser din puls under sauna- og dampbadssessioner, så hver session kan logges præcist i Apple Sundhed.";
+"NSHealthUpdateUsageDescription" = "Sauna Log skriver sauna- og dampbadstræninger, inklusive varighed og kalorier, til Apple Sundhed.";
