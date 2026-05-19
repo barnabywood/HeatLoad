@@ -17,9 +17,7 @@
       --ember: #c85a37;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
@@ -45,12 +43,12 @@
       border: 1px solid rgba(32, 23, 17, 0.12);
       border-radius: 28px;
       background: rgba(255, 255, 255, 0.76);
-      box-shadow: 0 24px 80px rgba(32, 23, 17, 0.12);
+      box-shadow: 0 24px 80px rgba(32, 23, 17, 0.13);
       backdrop-filter: blur(18px);
     }
 
     h1 {
-      margin: 0 0 0.25rem;
+      margin: 0 0 0.35rem;
       font-size: clamp(2rem, 8vw, 4rem);
       line-height: 0.95;
       letter-spacing: -0.06em;
@@ -62,14 +60,8 @@
       color: var(--steam);
     }
 
-    p,
-    li {
-      color: var(--muted);
-    }
-
-    ul {
-      padding-left: 1.2rem;
-    }
+    p, li { color: var(--muted); }
+    ul { padding-left: 1.2rem; }
 
     .meta {
       margin: 0 0 2rem;
@@ -77,8 +69,42 @@
       font-weight: 700;
     }
 
-    .contact,
     .language {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      margin: 0 0 1.5rem;
+      padding: 0.35rem;
+      border-radius: 1.25rem;
+      background: rgba(17, 130, 138, 0.09);
+    }
+
+    .language button {
+      appearance: none;
+      border: 0;
+      padding: 0.35rem 0.75rem;
+      border-radius: 999px;
+      background: transparent;
+      color: var(--steam);
+      font: inherit;
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .language button[aria-pressed="true"] {
+      color: white;
+      background: linear-gradient(135deg, var(--steam), var(--ember));
+    }
+
+    .language button:focus-visible {
+      outline: 3px solid rgba(241, 194, 122, 0.85);
+      outline-offset: 2px;
+    }
+
+    .policy[hidden] { display: none; }
+
+    .contact {
       display: inline-block;
       color: var(--steam);
       font-weight: 700;
@@ -86,74 +112,426 @@
     }
 
     .contact:focus,
-    .contact:hover,
-    .language:focus,
-    .language:hover {
-      text-decoration: underline;
-    }
-
-    .language-switch {
-      margin: 0 0 1.5rem;
-    }
+    .contact:hover { text-decoration: underline; }
   </style>
 </head>
 <body>
   <main>
     <article class="card">
-      <p class="language-switch"><a class="language" href="privacy-policy-de.html">Deutsch</a></p>
-      <h1>Sauna Log Privacy Policy</h1>
-      <p class="meta">Effective date: 14 May 2026</p>
+      <nav class="language" aria-label="Language">
+        <button type="button" data-language="en" aria-pressed="true">English</button>
+        <button type="button" data-language="de" aria-pressed="false">Deutsch</button>
+        <button type="button" data-language="fi" aria-pressed="false">Suomi</button>
+        <button type="button" data-language="sv" aria-pressed="false">Svenska</button>
+        <button type="button" data-language="ja" aria-pressed="false">日本語</button>
+        <button type="button" data-language="nb" aria-pressed="false">Norsk</button>
+        <button type="button" data-language="da" aria-pressed="false">Dansk</button>
+        <button type="button" data-language="nl" aria-pressed="false">Nederlands</button>
+      </nav>
 
-      <p>Sauna Log helps users track sauna and steam room sessions from Apple Watch, including duration, heart rate, calorie values, and optional cold shower logging.</p>
+      <section class="policy" data-policy="en" lang="en">
+        <h1>Sauna Log Privacy Policy</h1>
+        <p class="meta">Effective date: 19 May 2026</p>
+        <p>Sauna Log helps users track sauna and steam room sessions from Apple Watch, including duration, heart rate, calorie values, and optional cold shower logging.</p>
+        <h2>1. Information We Process</h2>
+        <p>Sauna Log may process the following information on your device:</p>
+        <ul>
+          <li>Heat session type, such as Sauna or Steam Room.</li>
+          <li>Session duration and timer preset.</li>
+          <li>Optional cold shower selection.</li>
+          <li>Heart rate during actively tracked sessions, if Health permission is granted.</li>
+          <li>Workout or session records written to Apple Health, if Health permission is granted.</li>
+          <li>Active and total calorie values where provided by Apple Health or Apple Watch.</li>
+          <li>Purchase-entitlement, free-trial, review-prompt, timer-setting, heart-rate-alert, and app-state information.</li>
+        </ul>
+        <h2>2. How Information Is Used</h2>
+        <p>Information is used only to provide the app's core functionality: running heat session timers, displaying heart-rate and calorie metrics, saving sessions, writing eligible workout or session information to Apple Health, syncing app state between Apple Watch and iPhone, restoring purchases, and enabling unlock status.</p>
+        <h2>3. Health Data and Apple Health</h2>
+        <p>If you grant Health permissions, Sauna Log reads and/or writes data through Apple HealthKit solely to support the session tracking features you choose to use.</p>
+        <ul>
+          <li>Health data is used only for app functionality you request.</li>
+          <li>We do not sell Health data.</li>
+          <li>We do not use Health data for advertising.</li>
+          <li>We do not use Health data for tracking or targeted advertising.</li>
+          <li>You can revoke Health permissions at any time in the Health app and iOS or watchOS settings.</li>
+        </ul>
+        <h2>4. Local Storage</h2>
+        <p>Sauna Log stores data primarily on your devices. Some session and app-state information may sync between your paired iPhone and Apple Watch using Apple's device connectivity frameworks. We do not operate our own cloud backend for personal data storage at this time.</p>
+        <h2>5. Purchases</h2>
+        <p>Sauna Log offers a free trial and an in-app purchase to unlock unlimited use. Purchase processing is handled by Apple through the App Store and StoreKit. We do not receive your full payment-card details.</p>
+        <h2>6. Sharing</h2>
+        <p>We do not sell your personal data. We do not share your personal data with third parties for targeted advertising. Data may be processed by Apple services required to run the app, such as HealthKit, StoreKit, notifications, and Apple Watch/iPhone connectivity.</p>
+        <h2>7. Retention and Deletion</h2>
+        <p>Because data is stored on your devices, you control deletion by deleting sessions inside the app where supported, removing app permissions, uninstalling the app and deleting associated data, or managing Apple Health records in the Health app.</p>
+        <h2>8. Children's Privacy</h2>
+        <p>Sauna Log is not directed to children under 13, or the equivalent minimum age in your jurisdiction, and we do not knowingly collect personal information from children.</p>
+        <h2>9. Your Choices</h2>
+        <p>You can choose whether to grant Health permissions, revoke Health permissions at any time, decide whether to purchase the unlock, and contact us with privacy questions.</p>
+        <h2>10. Changes to This Policy</h2>
+        <p>This policy may be updated from time to time. When it changes, the effective date above will be updated.</p>
+        <h2>11. Contact</h2>
+        <p>If you have privacy questions, contact <a class="contact" href="mailto:app.inventory.me@gmail.com">app.inventory.me@gmail.com</a>.</p>
+      </section>
 
-      <h2>1. Information We Process</h2>
-      <p>Sauna Log may process the following information:</p>
-      <ul>
-        <li>Heat session type, such as Sauna or Steam Room.</li>
-        <li>Session duration and timer preset.</li>
-        <li>Optional cold shower selection.</li>
-        <li>Heart rate during actively tracked sessions, if Health permission is granted.</li>
-        <li>Workout or session records written to Apple Health, if Health permission is granted.</li>
-        <li>Active and total calorie values where provided by Apple Health or Apple Watch.</li>
-      </ul>
+      <section class="policy" data-policy="de" lang="de" hidden>
+        <h1>Sauna Log Datenschutzerklärung</h1>
+        <p class="meta">Gültig ab: 19. Mai 2026</p>
+        <p>Sauna Log hilft Nutzerinnen und Nutzern dabei, Sauna- und Dampfbad-Sitzungen mit der Apple Watch zu erfassen. Dazu gehören Dauer, Herzfrequenz, Kalorienwerte und die optionale Protokollierung einer kalten Dusche.</p>
+        <h2>1. Welche Informationen wir verarbeiten</h2>
+        <p>Sauna Log kann die folgenden Informationen auf deinem Gerät verarbeiten:</p>
+        <ul>
+          <li>Art der Hitze-Sitzung, zum Beispiel Sauna oder Dampfbad.</li>
+          <li>Sitzungsdauer und Timer-Voreinstellung.</li>
+          <li>Optionale Auswahl, ob eine kalte Dusche genommen wurde.</li>
+          <li>Herzfrequenz während aktiv aufgezeichneter Sitzungen, wenn Health-Berechtigungen erteilt wurden.</li>
+          <li>Workout- oder Sitzungsdaten, die in Apple Health geschrieben werden, wenn Health-Berechtigungen erteilt wurden.</li>
+          <li>Aktive und gesamte Kalorienwerte, soweit diese von Apple Health oder der Apple Watch bereitgestellt werden.</li>
+          <li>Kaufberechtigungs-, Testphasen-, Bewertungsaufforderungs-, Timer-, Herzfrequenzhinweis- und App-Statusdaten.</li>
+        </ul>
+        <h2>2. Wie Informationen verwendet werden</h2>
+        <p>Informationen werden nur verwendet, um die Kernfunktionen der App bereitzustellen: Hitze-Sitzungstimer auszuführen, Herzfrequenz- und Kalorienwerte anzuzeigen, Sitzungen zu speichern, geeignete Workout- oder Sitzungsinformationen in Apple Health zu schreiben, den App-Status zwischen Apple Watch und iPhone zu synchronisieren, Käufe wiederherzustellen und den Freischaltstatus zu aktivieren.</p>
+        <h2>3. Gesundheitsdaten und Apple Health</h2>
+        <p>Wenn du Health-Berechtigungen erteilst, liest und/oder schreibt Sauna Log Daten über Apple HealthKit ausschließlich zur Unterstützung der von dir genutzten Sitzungsfunktionen.</p>
+        <ul>
+          <li>Gesundheitsdaten werden nur für die von dir angeforderten App-Funktionen verwendet.</li>
+          <li>Wir verkaufen keine Gesundheitsdaten.</li>
+          <li>Wir verwenden Gesundheitsdaten nicht für Werbung.</li>
+          <li>Wir verwenden Gesundheitsdaten nicht für Tracking oder zielgerichtete Werbung.</li>
+          <li>Du kannst Health-Berechtigungen jederzeit in der Health-App sowie in den iOS- und watchOS-Einstellungen widerrufen.</li>
+        </ul>
+        <h2>4. Lokale Speicherung</h2>
+        <p>Sauna Log speichert Daten in erster Linie lokal auf deinen Geräten. Einige Sitzungs- und App-Statusdaten können zwischen deinem gekoppelten iPhone und deiner Apple Watch über Apples Geräteverbindungsfunktionen synchronisiert werden. Wir betreiben derzeit kein eigenes Cloud-Backend zur Speicherung personenbezogener Daten.</p>
+        <h2>5. Käufe</h2>
+        <p>Sauna Log bietet eine kostenlose Testphase und einen In-App-Kauf zur Freischaltung unbegrenzter Nutzung. Die Zahlungsabwicklung erfolgt durch Apple über den App Store und StoreKit. Wir erhalten keine vollständigen Zahlungskarteninformationen.</p>
+        <h2>6. Weitergabe von Daten</h2>
+        <p>Wir verkaufen deine personenbezogenen Daten nicht. Wir geben deine personenbezogenen Daten nicht an Dritte für zielgerichtete Werbung weiter. Daten können durch Apple-Dienste verarbeitet werden, die für den Betrieb der App erforderlich sind, zum Beispiel HealthKit, StoreKit, Mitteilungen sowie die Verbindung zwischen Apple Watch und iPhone.</p>
+        <h2>7. Aufbewahrung und Löschung</h2>
+        <p>Da Daten auf deinen Geräten gespeichert werden, steuerst du die Löschung insbesondere durch das Löschen von Sitzungen innerhalb der App, das Entfernen von App-Berechtigungen, das Deinstallieren der App und Löschen der zugehörigen Daten oder das Verwalten von Apple-Health-Einträgen in der Health-App.</p>
+        <h2>8. Datenschutz von Kindern</h2>
+        <p>Sauna Log richtet sich nicht an Kinder unter 13 Jahren oder an Kinder unter dem in deinem Land geltenden Mindestalter. Wir erfassen wissentlich keine personenbezogenen Daten von Kindern.</p>
+        <h2>9. Deine Wahlmöglichkeiten</h2>
+        <p>Du kannst selbst entscheiden, ob du Health-Berechtigungen erteilst, Health-Berechtigungen jederzeit widerrufen, selbst entscheiden, ob du die Freischaltung kaufst, und uns bei Datenschutzfragen kontaktieren.</p>
+        <h2>10. Änderungen dieser Datenschutzerklärung</h2>
+        <p>Wir können diese Datenschutzerklärung von Zeit zu Zeit aktualisieren. Wenn sie sich ändert, aktualisieren wir das oben angegebene Datum.</p>
+        <h2>11. Kontakt</h2>
+        <p>Bei Fragen oder Anfragen zum Datenschutz kontaktiere uns bitte unter <a class="contact" href="mailto:app.inventory.me@gmail.com">app.inventory.me@gmail.com</a>.</p>
+      </section>
 
-      <h2>2. How Information Is Used</h2>
-      <p>Information is used only to provide the app's core functionality: running heat session timers, displaying heart-rate and calorie metrics, saving sessions, writing eligible workout or session information to Apple Health, syncing app state between Apple Watch and iPhone, and enabling purchase or unlock status.</p>
+      <section class="policy" data-policy="fi" lang="fi" hidden>
+        <h1>Sauna Login tietosuojakäytäntö</h1>
+        <p class="meta">Voimaantulopäivä: 19. toukokuuta 2026</p>
+        <p>Sauna Log auttaa käyttäjiä seuraamaan sauna- ja höyryhuonesessioita Apple Watchilla, mukaan lukien kesto, syke, kalorilukemat ja valinnainen kylmän suihkun merkintä.</p>
+        <h2>1. Käsittelemämme tiedot</h2>
+        <p>Sauna Log voi käsitellä seuraavia tietoja laitteellasi:</p>
+        <ul>
+          <li>Lämpösession tyyppi, kuten sauna tai höyryhuone.</li>
+          <li>Session kesto ja ajastimen esiasetus.</li>
+          <li>Valinnainen merkintä siitä, otettiinko kylmä suihku.</li>
+          <li>Syke aktiivisesti seurattujen sessioiden aikana, jos Health-lupa on annettu.</li>
+          <li>Apple Healthiin kirjoitetut harjoitus- tai sessiotiedot, jos Health-lupa on annettu.</li>
+          <li>Aktiiviset ja kokonaiskalorit, jos Apple Health tai Apple Watch tarjoaa ne.</li>
+          <li>Osto-oikeus-, kokeilujakso-, arvostelupyyntö-, ajastin-, sykehälytys- ja sovellustilatiedot.</li>
+        </ul>
+        <h2>2. Miten tietoja käytetään</h2>
+        <p>Tietoja käytetään vain sovelluksen ydintoimintoihin: lämpösessioiden ajastamiseen, sykkeen ja kalorien näyttämiseen, sessioiden tallentamiseen, soveltuvien harjoitus- tai sessiotietojen kirjoittamiseen Apple Healthiin, sovellustilan synkronointiin Apple Watchin ja iPhonen välillä, ostojen palauttamiseen ja lukituksen avaustilan käyttöönottoon.</p>
+        <h2>3. Terveystiedot ja Apple Health</h2>
+        <p>Jos annat Health-luvat, Sauna Log lukee ja/tai kirjoittaa tietoja Apple HealthKitin kautta vain valitsemiesi sessionseurantatoimintojen tukemiseksi.</p>
+        <ul>
+          <li>Terveystietoja käytetään vain pyytämiisi sovellustoimintoihin.</li>
+          <li>Emme myy terveystietoja.</li>
+          <li>Emme käytä terveystietoja mainontaan.</li>
+          <li>Emme käytä terveystietoja seurantaan tai kohdennettuun mainontaan.</li>
+          <li>Voit peruuttaa Health-luvat milloin tahansa Health-sovelluksessa sekä iOS- tai watchOS-asetuksissa.</li>
+        </ul>
+        <h2>4. Paikallinen tallennus</h2>
+        <p>Sauna Log tallentaa tiedot ensisijaisesti laitteillesi. Osa sessio- ja sovellustilatiedoista voidaan synkronoida pariliitetyn iPhonen ja Apple Watchin välillä Applen laiteyhteyskehyksillä. Emme tällä hetkellä ylläpidä omaa pilvitaustajärjestelmää henkilötietojen tallentamiseen.</p>
+        <h2>5. Ostot</h2>
+        <p>Sauna Log tarjoaa ilmaisen kokeilun ja sovelluksen sisäisen ostoksen rajoittamattoman käytön avaamiseksi. Ostojen käsittelystä vastaa Apple App Storen ja StoreKitin kautta. Emme saa täydellisiä maksukorttitietojasi.</p>
+        <h2>6. Tietojen jakaminen</h2>
+        <p>Emme myy henkilötietojasi. Emme jaa henkilötietojasi kolmansille osapuolille kohdennettua mainontaa varten. Tietoja voivat käsitellä sovelluksen toiminnan edellyttämät Applen palvelut, kuten HealthKit, StoreKit, ilmoitukset sekä Apple Watchin ja iPhonen välinen yhteys.</p>
+        <h2>7. Säilytys ja poistaminen</h2>
+        <p>Koska tiedot tallennetaan laitteillesi, hallitset poistamista poistamalla sessioita sovelluksessa, poistamalla sovelluksen käyttöoikeuksia, poistamalla sovelluksen ja siihen liittyvät tiedot tai hallitsemalla Apple Health -merkintöjä Health-sovelluksessa.</p>
+        <h2>8. Lasten yksityisyys</h2>
+        <p>Sauna Logia ei ole suunnattu alle 13-vuotiaille lapsille tai lainkäyttöalueesi vastaavaa vähimmäisikää nuoremmille lapsille, emmekä tietoisesti kerää lasten henkilötietoja.</p>
+        <h2>9. Valintasi</h2>
+        <p>Voit päättää, annatko Health-luvat, peruuttaa Health-luvat milloin tahansa, päättää ostatko lukituksen avaamisen ja ottaa meihin yhteyttä tietosuojaan liittyvissä kysymyksissä.</p>
+        <h2>10. Käytännön muutokset</h2>
+        <p>Tätä käytäntöä voidaan päivittää ajoittain. Kun se muuttuu, yllä oleva voimaantulopäivä päivitetään.</p>
+        <h2>11. Yhteystiedot</h2>
+        <p>Tietosuojaan liittyvissä kysymyksissä ota yhteyttä: <a class="contact" href="mailto:app.inventory.me@gmail.com">app.inventory.me@gmail.com</a>.</p>
+      </section>
 
-      <h2>3. Health Data and Apple Health</h2>
-      <p>If you grant Health permissions, Sauna Log reads and/or writes data through Apple HealthKit solely to support the session tracking features you choose to use.</p>
-      <ul>
-        <li>Health data is used only for app functionality you request.</li>
-        <li>We do not sell Health data.</li>
-        <li>We do not use Health data for advertising.</li>
-        <li>We do not use Health data for tracking or targeted advertising.</li>
-        <li>You can revoke Health permissions at any time in the Health app and iOS or watchOS settings.</li>
-      </ul>
+      <section class="policy" data-policy="sv" lang="sv" hidden>
+        <h1>Sauna Logs integritetspolicy</h1>
+        <p class="meta">Gäller från: 19 maj 2026</p>
+        <p>Sauna Log hjälper användare att registrera bastu- och ångbadsessioner från Apple Watch, inklusive varaktighet, puls, kalorivärden och valfri registrering av kall dusch.</p>
+        <h2>1. Information vi behandlar</h2>
+        <p>Sauna Log kan behandla följande information på din enhet:</p>
+        <ul>
+          <li>Typ av värmesession, till exempel bastu eller ångbad.</li>
+          <li>Sessionens längd och timerförval.</li>
+          <li>Valfri uppgift om en kall dusch togs.</li>
+          <li>Puls under aktivt registrerade sessioner, om Health-behörighet har beviljats.</li>
+          <li>Tränings- eller sessionsposter som skrivs till Apple Health, om Health-behörighet har beviljats.</li>
+          <li>Aktiva kalorier och totala kalorier när de tillhandahålls av Apple Health eller Apple Watch.</li>
+          <li>Köpbehörighet, gratis provperiod, recensionspromptar, timerinställningar, pulsvarningar och appstatus.</li>
+        </ul>
+        <h2>2. Hur information används</h2>
+        <p>Information används endast för appens kärnfunktioner: att köra timers för värmesessioner, visa puls- och kalorimått, spara sessioner, skriva lämplig tränings- eller sessionsinformation till Apple Health, synkronisera appstatus mellan Apple Watch och iPhone, återställa köp och aktivera upplåsningsstatus.</p>
+        <h2>3. Hälsodata och Apple Health</h2>
+        <p>Om du ger Health-behörigheter läser och/eller skriver Sauna Log data via Apple HealthKit endast för att stödja de sessionsfunktioner du väljer att använda.</p>
+        <ul>
+          <li>Hälsodata används endast för appfunktioner du begär.</li>
+          <li>Vi säljer inte hälsodata.</li>
+          <li>Vi använder inte hälsodata för annonsering.</li>
+          <li>Vi använder inte hälsodata för spårning eller riktad annonsering.</li>
+          <li>Du kan när som helst återkalla Health-behörigheter i Health-appen och i iOS- eller watchOS-inställningar.</li>
+        </ul>
+        <h2>4. Lokal lagring</h2>
+        <p>Sauna Log lagrar data främst på dina enheter. Viss sessions- och appstatusinformation kan synkroniseras mellan din parkopplade iPhone och Apple Watch med Apples ramverk för enhetsanslutning. Vi driver för närvarande ingen egen molnbaserad backend för lagring av personuppgifter.</p>
+        <h2>5. Köp</h2>
+        <p>Sauna Log erbjuder en gratis provperiod och ett köp i appen för att låsa upp obegränsad användning. Betalningar hanteras av Apple via App Store och StoreKit. Vi får inte dina fullständiga betalkortsuppgifter.</p>
+        <h2>6. Delning</h2>
+        <p>Vi säljer inte dina personuppgifter. Vi delar inte dina personuppgifter med tredje part för riktad annonsering. Data kan behandlas av Apple-tjänster som krävs för att appen ska fungera, till exempel HealthKit, StoreKit, notiser och anslutningen mellan Apple Watch och iPhone.</p>
+        <h2>7. Lagringstid och radering</h2>
+        <p>Eftersom data lagras på dina enheter kontrollerar du radering genom att radera sessioner i appen där det stöds, ta bort appbehörigheter, avinstallera appen och radera tillhörande data eller hantera Apple Health-poster i Health-appen.</p>
+        <h2>8. Barns integritet</h2>
+        <p>Sauna Log riktar sig inte till barn under 13 år, eller motsvarande minimiålder i din jurisdiktion, och vi samlar inte medvetet in personuppgifter från barn.</p>
+        <h2>9. Dina val</h2>
+        <p>Du kan välja om du vill ge Health-behörigheter, återkalla Health-behörigheter när som helst, bestämma om du vill köpa upplåsningen och kontakta oss med integritetsfrågor.</p>
+        <h2>10. Ändringar av denna policy</h2>
+        <p>Denna policy kan uppdateras då och då. När den ändras uppdateras ikraftträdandedatumet ovan.</p>
+        <h2>11. Kontakt</h2>
+        <p>Om du har integritetsfrågor, kontakta <a class="contact" href="mailto:app.inventory.me@gmail.com">app.inventory.me@gmail.com</a>.</p>
+      </section>
 
-      <h2>4. Local Storage</h2>
-      <p>Sauna Log stores data primarily on your devices. Some session and app-state information may sync between your paired iPhone and Apple Watch using Apple's device connectivity frameworks. We do not operate our own cloud backend for personal data storage at this time.</p>
+      <section class="policy" data-policy="ja" lang="ja" hidden>
+        <h1>Sauna Log プライバシーポリシー</h1>
+        <p class="meta">発効日: 2026年5月19日</p>
+        <p>Sauna Log は、Apple Watch でサウナやスチームルームのセッションを記録するためのアプリです。記録には、時間、心拍数、カロリー値、任意の冷水シャワーの記録が含まれます。</p>
+        <h2>1. 処理する情報</h2>
+        <p>Sauna Log は、あなたのデバイス上で次の情報を処理する場合があります。</p>
+        <ul>
+          <li>サウナやスチームルームなどの熱セッションの種類。</li>
+          <li>セッション時間とタイマーのプリセット。</li>
+          <li>冷水シャワーを行ったかどうかの任意の選択。</li>
+          <li>Health の許可が与えられている場合、記録中のセッションの心拍数。</li>
+          <li>Health の許可が与えられている場合、Apple Health に書き込まれるワークアウトまたはセッション記録。</li>
+          <li>Apple Health または Apple Watch が提供するアクティブカロリーおよび合計カロリー。</li>
+          <li>購入資格、無料トライアル、レビュー依頼、タイマー設定、心拍数アラート、アプリ状態に関する情報。</li>
+        </ul>
+        <h2>2. 情報の使用方法</h2>
+        <p>情報は、アプリの基本機能を提供するためにのみ使用されます。これには、熱セッションタイマーの実行、心拍数とカロリー指標の表示、セッションの保存、対象となるワークアウトまたはセッション情報の Apple Health への書き込み、Apple Watch と iPhone 間のアプリ状態の同期、購入の復元、ロック解除状態の有効化が含まれます。</p>
+        <h2>3. 健康データと Apple Health</h2>
+        <p>Health の許可を与えた場合、Sauna Log は、あなたが使用するセッション記録機能をサポートする目的に限り、Apple HealthKit を通じてデータを読み取り、および/または書き込みます。</p>
+        <ul>
+          <li>健康データは、あなたが要求したアプリ機能にのみ使用されます。</li>
+          <li>当方は健康データを販売しません。</li>
+          <li>当方は健康データを広告に使用しません。</li>
+          <li>当方は健康データをトラッキングまたはターゲティング広告に使用しません。</li>
+          <li>Health の許可は、Health アプリおよび iOS または watchOS の設定でいつでも取り消すことができます。</li>
+        </ul>
+        <h2>4. ローカル保存</h2>
+        <p>Sauna Log は主にあなたのデバイス上にデータを保存します。一部のセッション情報およびアプリ状態情報は、Apple のデバイス接続フレームワークを使用して、ペアリングされた iPhone と Apple Watch の間で同期される場合があります。現在、当方は個人データを保存する独自のクラウドバックエンドを運営していません。</p>
+        <h2>5. 購入</h2>
+        <p>Sauna Log は無料トライアルと、無制限の利用を解除するためのアプリ内課金を提供します。購入処理は App Store と StoreKit を通じて Apple が行います。当方が完全な支払いカード情報を受け取ることはありません。</p>
+        <h2>6. 共有</h2>
+        <p>当方はあなたの個人データを販売しません。また、ターゲティング広告のために個人データを第三者と共有しません。アプリの動作に必要な Apple サービス、たとえば HealthKit、StoreKit、通知、Apple Watch と iPhone の接続によってデータが処理される場合があります。</p>
+        <h2>7. 保持と削除</h2>
+        <p>データはあなたのデバイスに保存されるため、対応している場合はアプリ内でセッションを削除する、アプリの許可を削除する、アプリをアンインストールして関連データを削除する、または Health アプリで Apple Health の記録を管理することで、削除を管理できます。</p>
+        <h2>8. 子どものプライバシー</h2>
+        <p>Sauna Log は、13歳未満、またはあなたの地域で定められた同等の最低年齢未満の子どもを対象としていません。当方は、子どもの個人情報を意図的に収集しません。</p>
+        <h2>9. あなたの選択</h2>
+        <p>Health の許可を与えるかどうか、いつでも許可を取り消すかどうか、ロック解除を購入するかどうかを選択できます。また、プライバシーに関する質問について当方に連絡できます。</p>
+        <h2>10. 本ポリシーの変更</h2>
+        <p>本ポリシーは随時更新される場合があります。変更がある場合は、上記の発効日を更新します。</p>
+        <h2>11. 連絡先</h2>
+        <p>プライバシーに関する質問は、<a class="contact" href="mailto:app.inventory.me@gmail.com">app.inventory.me@gmail.com</a> までお問い合わせください。</p>
+      </section>
 
-      <h2>5. Purchases</h2>
-      <p>Sauna Log offers a free trial and an in-app purchase to unlock unlimited use. Purchase processing is handled by Apple through the App Store and StoreKit. We do not receive your full payment card details.</p>
+      <section class="policy" data-policy="nb" lang="nb" hidden>
+        <h1>Sauna Log personvernerklæring</h1>
+        <p class="meta">Gjelder fra: 19. mai 2026</p>
+        <p>Sauna Log hjelper brukere med å registrere badstue- og dampromsøkter fra Apple Watch, inkludert varighet, puls, kaloriverdier og valgfri registrering av kald dusj.</p>
+        <h2>1. Informasjon vi behandler</h2>
+        <p>Sauna Log kan behandle følgende informasjon på enheten din:</p>
+        <ul>
+          <li>Type varmeøkt, for eksempel badstue eller damprom.</li>
+          <li>Øktvarighet og forhåndsinnstilling for timer.</li>
+          <li>Valgfri registrering av om du tok en kald dusj.</li>
+          <li>Puls under aktivt registrerte økter, hvis Health-tillatelse er gitt.</li>
+          <li>Trenings- eller øktposter som skrives til Apple Health, hvis Health-tillatelse er gitt.</li>
+          <li>Aktive og totale kaloriverdier når de leveres av Apple Health eller Apple Watch.</li>
+          <li>Kjøpsrettighet, gratis prøveperiode, vurderingspåminnelser, timerinnstillinger, pulsvarsler og appstatus.</li>
+        </ul>
+        <h2>2. Hvordan informasjon brukes</h2>
+        <p>Informasjon brukes bare til appens kjernefunksjoner: å kjøre timere for varmeøkter, vise puls- og kalorimålinger, lagre økter, skrive egnet trenings- eller øktinformasjon til Apple Health, synkronisere appstatus mellom Apple Watch og iPhone, gjenopprette kjøp og aktivere opplåsingsstatus.</p>
+        <h2>3. Helsedata og Apple Health</h2>
+        <p>Hvis du gir Health-tillatelser, leser og/eller skriver Sauna Log data via Apple HealthKit bare for å støtte øktsporingsfunksjonene du velger å bruke.</p>
+        <ul>
+          <li>Helsedata brukes bare til appfunksjoner du ber om.</li>
+          <li>Vi selger ikke helsedata.</li>
+          <li>Vi bruker ikke helsedata til annonsering.</li>
+          <li>Vi bruker ikke helsedata til sporing eller målrettet annonsering.</li>
+          <li>Du kan når som helst trekke tilbake Health-tillatelser i Health-appen og i iOS- eller watchOS-innstillinger.</li>
+        </ul>
+        <h2>4. Lokal lagring</h2>
+        <p>Sauna Log lagrer data hovedsakelig på enhetene dine. Noe økt- og appstatusinformasjon kan synkroniseres mellom din parkoblede iPhone og Apple Watch ved hjelp av Apples rammeverk for enhetstilkobling. Vi driver for øyeblikket ingen egen skybasert backend for lagring av personopplysninger.</p>
+        <h2>5. Kjøp</h2>
+        <p>Sauna Log tilbyr en gratis prøveperiode og et kjøp i appen for å låse opp ubegrenset bruk. Kjøpsbehandling håndteres av Apple via App Store og StoreKit. Vi mottar ikke de fullstendige betalingskortopplysningene dine.</p>
+        <h2>6. Deling</h2>
+        <p>Vi selger ikke personopplysningene dine. Vi deler ikke personopplysningene dine med tredjeparter for målrettet annonsering. Data kan behandles av Apple-tjenester som kreves for å drive appen, for eksempel HealthKit, StoreKit, varsler og Apple Watch/iPhone-tilkobling.</p>
+        <h2>7. Oppbevaring og sletting</h2>
+        <p>Fordi data lagres på enhetene dine, kontrollerer du sletting ved å slette økter i appen der dette støttes, fjerne apptillatelser, avinstallere appen og slette tilknyttede data, eller administrere Apple Health-poster i Health-appen.</p>
+        <h2>8. Barns personvern</h2>
+        <p>Sauna Log er ikke rettet mot barn under 13 år, eller tilsvarende minstealder i din jurisdiksjon, og vi samler ikke bevisst inn personopplysninger fra barn.</p>
+        <h2>9. Dine valg</h2>
+        <p>Du kan velge om du vil gi Health-tillatelser, trekke tilbake Health-tillatelser når som helst, bestemme om du vil kjøpe opplåsingen og kontakte oss med personvernspørsmål.</p>
+        <h2>10. Endringer i denne erklæringen</h2>
+        <p>Denne erklæringen kan oppdateres fra tid til annen. Når den endres, oppdateres ikrafttredelsesdatoen ovenfor.</p>
+        <h2>11. Kontakt</h2>
+        <p>Hvis du har spørsmål om personvern, kan du kontakte <a class="contact" href="mailto:app.inventory.me@gmail.com">app.inventory.me@gmail.com</a>.</p>
+      </section>
 
-      <h2>6. Sharing</h2>
-      <p>We do not sell your personal data. We do not share your personal data with third parties for targeted advertising. Data may be processed by Apple services required to run the app, such as HealthKit, StoreKit, and Apple Watch/iPhone connectivity.</p>
+      <section class="policy" data-policy="da" lang="da" hidden>
+        <h1>Sauna Log privatlivspolitik</h1>
+        <p class="meta">Gældende fra: 19. maj 2026</p>
+        <p>Sauna Log hjælper brugere med at registrere sauna- og dampbadsessioner fra Apple Watch, herunder varighed, puls, kalorieværdier og valgfri registrering af koldt brusebad.</p>
+        <h2>1. Oplysninger vi behandler</h2>
+        <p>Sauna Log kan behandle følgende oplysninger på din enhed:</p>
+        <ul>
+          <li>Type varmesession, f.eks. sauna eller dampbad.</li>
+          <li>Sessionens varighed og timerforvalg.</li>
+          <li>Valgfri angivelse af, om der blev taget et koldt brusebad.</li>
+          <li>Puls under aktivt registrerede sessioner, hvis Health-tilladelse er givet.</li>
+          <li>Trænings- eller sessionsposter, der skrives til Apple Health, hvis Health-tilladelse er givet.</li>
+          <li>Aktive og samlede kalorieværdier, når de leveres af Apple Health eller Apple Watch.</li>
+          <li>Købsrettighed, gratis prøveperiode, anmeldelsesprompt, timerindstillinger, pulsalarmer og appstatus.</li>
+        </ul>
+        <h2>2. Hvordan oplysninger bruges</h2>
+        <p>Oplysninger bruges kun til appens kernefunktioner: at køre timere for varmesessioner, vise puls- og kaloriedata, gemme sessioner, skrive relevante trænings- eller sessionsoplysninger til Apple Health, synkronisere appstatus mellem Apple Watch og iPhone, gendanne køb og aktivere oplåsningsstatus.</p>
+        <h2>3. Sundhedsdata og Apple Health</h2>
+        <p>Hvis du giver Health-tilladelser, læser og/eller skriver Sauna Log data via Apple HealthKit udelukkende for at understøtte de sessionssporingsfunktioner, du vælger at bruge.</p>
+        <ul>
+          <li>Sundhedsdata bruges kun til appfunktioner, du anmoder om.</li>
+          <li>Vi sælger ikke sundhedsdata.</li>
+          <li>Vi bruger ikke sundhedsdata til annoncering.</li>
+          <li>Vi bruger ikke sundhedsdata til sporing eller målrettet annoncering.</li>
+          <li>Du kan til enhver tid tilbagekalde Health-tilladelser i Health-appen og i iOS- eller watchOS-indstillinger.</li>
+        </ul>
+        <h2>4. Lokal lagring</h2>
+        <p>Sauna Log gemmer primært data på dine enheder. Nogle sessions- og appstatusoplysninger kan synkroniseres mellem din parrede iPhone og Apple Watch via Apples rammer for enhedsforbindelse. Vi driver i øjeblikket ikke vores egen cloud-backend til lagring af personoplysninger.</p>
+        <h2>5. Køb</h2>
+        <p>Sauna Log tilbyder en gratis prøveperiode og et køb i appen for at låse op for ubegrænset brug. Købsbehandling håndteres af Apple via App Store og StoreKit. Vi modtager ikke dine fulde betalingskortoplysninger.</p>
+        <h2>6. Deling</h2>
+        <p>Vi sælger ikke dine personoplysninger. Vi deler ikke dine personoplysninger med tredjeparter til målrettet annoncering. Data kan behandles af Apple-tjenester, der er nødvendige for at drive appen, f.eks. HealthKit, StoreKit, notifikationer og forbindelsen mellem Apple Watch og iPhone.</p>
+        <h2>7. Opbevaring og sletning</h2>
+        <p>Fordi data gemmes på dine enheder, styrer du sletning ved at slette sessioner i appen, hvor det understøttes, fjerne apptilladelser, afinstallere appen og slette tilknyttede data eller administrere Apple Health-poster i Health-appen.</p>
+        <h2>8. Børns privatliv</h2>
+        <p>Sauna Log er ikke rettet mod børn under 13 år eller den tilsvarende minimumsalder i din jurisdiktion, og vi indsamler ikke bevidst personoplysninger fra børn.</p>
+        <h2>9. Dine valg</h2>
+        <p>Du kan vælge, om du vil give Health-tilladelser, tilbagekalde Health-tilladelser når som helst, beslutte om du vil købe oplåsningen og kontakte os med spørgsmål om privatliv.</p>
+        <h2>10. Ændringer af denne politik</h2>
+        <p>Denne politik kan blive opdateret fra tid til anden. Når den ændres, opdateres ikrafttrædelsesdatoen ovenfor.</p>
+        <h2>11. Kontakt</h2>
+        <p>Hvis du har spørgsmål om privatliv, kan du kontakte <a class="contact" href="mailto:app.inventory.me@gmail.com">app.inventory.me@gmail.com</a>.</p>
+      </section>
 
-      <h2>7. Retention and Deletion</h2>
-      <p>Because data is stored on your devices, you control deletion by deleting sessions inside the app where supported, removing app permissions, uninstalling the app and deleting associated data, or managing Apple Health records in the Health app.</p>
-
-      <h2>8. Children's Privacy</h2>
-      <p>Sauna Log is not directed to children under 13, or the equivalent minimum age in your jurisdiction, and we do not knowingly collect personal information from children.</p>
-
-      <h2>9. Your Choices</h2>
-      <p>You can choose whether to grant Health permissions, revoke Health permissions at any time, decide whether to purchase the unlock, and contact us with privacy questions.</p>
-
-      <h2>10. Changes to This Policy</h2>
-      <p>This policy may be updated from time to time. When it changes, the effective date above will be updated.</p>
-
-      <h2>11. Contact</h2>
-      <p>If you have privacy questions, contact <a class="contact" href="mailto:app.inventory.me@gmail.com">app.inventory.me@gmail.com</a>.</p>
+      <section class="policy" data-policy="nl" lang="nl" hidden>
+        <h1>Privacybeleid van Sauna Log</h1>
+        <p class="meta">Ingangsdatum: 19 mei 2026</p>
+        <p>Sauna Log helpt gebruikers sauna- en stoombadsessies te registreren vanaf Apple Watch, inclusief duur, hartslag, caloriewaarden en optionele registratie van een koude douche.</p>
+        <h2>1. Informatie die we verwerken</h2>
+        <p>Sauna Log kan de volgende informatie op je apparaat verwerken:</p>
+        <ul>
+          <li>Type warmtesessie, zoals sauna of stoombad.</li>
+          <li>Sessieduur en timerpreset.</li>
+          <li>Optionele keuze of er een koude douche is genomen.</li>
+          <li>Hartslag tijdens actief bijgehouden sessies, als Health-toestemming is gegeven.</li>
+          <li>Workout- of sessierecords die naar Apple Health worden geschreven, als Health-toestemming is gegeven.</li>
+          <li>Actieve en totale caloriewaarden wanneer Apple Health of Apple Watch deze beschikbaar stelt.</li>
+          <li>Aankooprecht, gratis proefperiode, beoordelingsprompt, timerinstellingen, hartslagwaarschuwingen en appstatus.</li>
+        </ul>
+        <h2>2. Hoe informatie wordt gebruikt</h2>
+        <p>Informatie wordt alleen gebruikt voor de kernfuncties van de app: timers voor warmtesessies uitvoeren, hartslag- en caloriegegevens tonen, sessies opslaan, geschikte workout- of sessie-informatie naar Apple Health schrijven, appstatus synchroniseren tussen Apple Watch en iPhone, aankopen herstellen en ontgrendelingsstatus activeren.</p>
+        <h2>3. Gezondheidsgegevens en Apple Health</h2>
+        <p>Als je Health-toestemmingen geeft, leest en/of schrijft Sauna Log gegevens via Apple HealthKit uitsluitend ter ondersteuning van de sessietrackingfuncties die je kiest te gebruiken.</p>
+        <ul>
+          <li>Gezondheidsgegevens worden alleen gebruikt voor appfuncties die je aanvraagt.</li>
+          <li>We verkopen geen gezondheidsgegevens.</li>
+          <li>We gebruiken gezondheidsgegevens niet voor advertenties.</li>
+          <li>We gebruiken gezondheidsgegevens niet voor tracking of gerichte advertenties.</li>
+          <li>Je kunt Health-toestemmingen op elk moment intrekken in de Health-app en in de iOS- of watchOS-instellingen.</li>
+        </ul>
+        <h2>4. Lokale opslag</h2>
+        <p>Sauna Log slaat gegevens voornamelijk op je apparaten op. Sommige sessie- en appstatusinformatie kan worden gesynchroniseerd tussen je gekoppelde iPhone en Apple Watch met Apples frameworks voor apparaatverbinding. We beheren momenteel geen eigen cloudbackend voor opslag van persoonsgegevens.</p>
+        <h2>5. Aankopen</h2>
+        <p>Sauna Log biedt een gratis proefperiode en een in-app aankoop om onbeperkt gebruik te ontgrendelen. Aankoopverwerking wordt door Apple afgehandeld via de App Store en StoreKit. We ontvangen niet je volledige betaalkaartgegevens.</p>
+        <h2>6. Delen</h2>
+        <p>We verkopen je persoonsgegevens niet. We delen je persoonsgegevens niet met derden voor gerichte advertenties. Gegevens kunnen worden verwerkt door Apple-diensten die nodig zijn om de app te laten werken, zoals HealthKit, StoreKit, meldingen en Apple Watch/iPhone-connectiviteit.</p>
+        <h2>7. Bewaren en verwijderen</h2>
+        <p>Omdat gegevens op je apparaten worden opgeslagen, beheer je verwijdering door sessies in de app te verwijderen waar dat wordt ondersteund, appmachtigingen te verwijderen, de app te verwijderen en bijbehorende gegevens te wissen, of Apple Health-records te beheren in de Health-app.</p>
+        <h2>8. Privacy van kinderen</h2>
+        <p>Sauna Log is niet gericht op kinderen jonger dan 13 jaar, of de equivalente minimumleeftijd in jouw rechtsgebied, en we verzamelen niet bewust persoonsgegevens van kinderen.</p>
+        <h2>9. Je keuzes</h2>
+        <p>Je kunt kiezen of je Health-toestemmingen geeft, Health-toestemmingen op elk moment intrekken, beslissen of je de ontgrendeling koopt en contact met ons opnemen met privacyvragen.</p>
+        <h2>10. Wijzigingen in dit beleid</h2>
+        <p>Dit beleid kan van tijd tot tijd worden bijgewerkt. Wanneer het verandert, wordt de ingangsdatum hierboven bijgewerkt.</p>
+        <h2>11. Contact</h2>
+        <p>Als je privacyvragen hebt, neem contact op via <a class="contact" href="mailto:app.inventory.me@gmail.com">app.inventory.me@gmail.com</a>.</p>
+      </section>
     </article>
   </main>
+
+  <script>
+    (function () {
+      var supported = ["en", "de", "fi", "sv", "ja", "nb", "da", "nl"];
+      var aliases = { no: "nb", nn: "nb" };
+      var buttons = Array.prototype.slice.call(document.querySelectorAll("[data-language]"));
+      var policies = Array.prototype.slice.call(document.querySelectorAll("[data-policy]"));
+
+      function normalise(value) {
+        var code = (value || "").toLowerCase().split("-")[0];
+        return aliases[code] || code;
+      }
+
+      function chooseInitialLanguage() {
+        var hash = normalise(window.location.hash.replace("#", ""));
+        if (supported.indexOf(hash) !== -1) { return hash; }
+        var stored = normalise(window.localStorage && window.localStorage.getItem("saunalog-privacy-language"));
+        if (supported.indexOf(stored) !== -1) { return stored; }
+        var browser = normalise(window.navigator.language);
+        if (supported.indexOf(browser) !== -1) { return browser; }
+        return "en";
+      }
+
+      function showLanguage(language, updateHash) {
+        if (supported.indexOf(language) === -1) { language = "en"; }
+        document.documentElement.lang = language;
+        buttons.forEach(function (button) {
+          button.setAttribute("aria-pressed", button.dataset.language === language ? "true" : "false");
+        });
+        policies.forEach(function (policy) {
+          policy.hidden = policy.dataset.policy !== language;
+        });
+        try { window.localStorage.setItem("saunalog-privacy-language", language); } catch (error) {}
+        if (updateHash && window.history && window.history.replaceState) {
+          window.history.replaceState(null, "", "#" + language);
+        }
+      }
+
+      buttons.forEach(function (button) {
+        button.addEventListener("click", function () {
+          showLanguage(button.dataset.language, true);
+        });
+      });
+
+      window.addEventListener("hashchange", function () {
+        showLanguage(normalise(window.location.hash.replace("#", "")), false);
+      });
+
+      showLanguage(chooseInitialLanguage(), false);
+    }());
+  </script>
 </body>
 </html>
