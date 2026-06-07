@@ -7,10 +7,12 @@ final class SaunaLogLocalNotificationManager {
 
     private enum Keys {
         static let hasScheduledTrialExhaustedReminder = "notifications.trialExhaustedReminder.scheduled"
+        static let hasScheduledWatchInstallReminder = "notifications.watchInstallReminder.scheduled"
     }
 
     private let center = UNUserNotificationCenter.current()
     private let reminderIdentifier = "saunalog.trial.exhausted.unlock"
+    private let watchInstallReminderIdentifier = "saunalog.watch.install.reminder"
     private let defaults: UserDefaults
 
     private init(defaults: UserDefaults = .standard) {
@@ -56,13 +58,48 @@ final class SaunaLogLocalNotificationManager {
         }
     }
 
+    func scheduleWatchInstallReminderIfNeeded(isPaired: Bool, isWatchAppInstalled: Bool) {
+        if !isPaired || isWatchAppInstalled {
+            clearWatchInstallReminder()
+            defaults.set(false, forKey: Keys.hasScheduledWatchInstallReminder)
+            return
+        }
+
+        guard !defaults.bool(forKey: Keys.hasScheduledWatchInstallReminder) else { return }
+
+        let content = UNMutableNotificationContent()
+        content.title = L10n.string("notification.watch_missing.title")
+        content.body = L10n.string("notification.watch_missing.body")
+        content.sound = .default
+        content.interruptionLevel = .active
+
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 5, repeats: false)
+        let request = UNNotificationRequest(identifier: watchInstallReminderIdentifier, content: content, trigger: trigger)
+
+        center.add(request) { error in
+            guard error == nil else { return }
+            Task { @MainActor in
+                SaunaLogLocalNotificationManager.shared.markWatchInstallReminderScheduled()
+            }
+        }
+    }
+
     private func markUnlockReminderScheduled() {
         defaults.set(true, forKey: Keys.hasScheduledTrialExhaustedReminder)
+    }
+
+    private func markWatchInstallReminderScheduled() {
+        defaults.set(true, forKey: Keys.hasScheduledWatchInstallReminder)
     }
 
     private func clearUnlockReminder() {
         center.removePendingNotificationRequests(withIdentifiers: [reminderIdentifier])
         center.removeDeliveredNotifications(withIdentifiers: [reminderIdentifier])
+    }
+
+    private func clearWatchInstallReminder() {
+        center.removePendingNotificationRequests(withIdentifiers: [watchInstallReminderIdentifier])
+        center.removeDeliveredNotifications(withIdentifiers: [watchInstallReminderIdentifier])
     }
 }
 

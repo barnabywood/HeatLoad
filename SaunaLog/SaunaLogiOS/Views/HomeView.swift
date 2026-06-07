@@ -1,4 +1,5 @@
 import SwiftUI
+import Charts
 import StoreKit
 import UIKit
 import WatchConnectivity
@@ -17,6 +18,7 @@ struct HomeView: View {
     @State private var editingPresetIndex: Int?
     @State private var editingMinutesInput = ""
     @State private var showingSupport = false
+    @State private var showingInsights = false
     @State private var pendingDeletionSession: HeatSession?
     @State private var showingDeleteConfirmation = false
     @State private var deleteFailureMessage: String?
@@ -46,6 +48,8 @@ struct HomeView: View {
         Group {
             if showingSupport {
                 supportPage
+            } else if showingInsights {
+                insightsPage
             } else {
                 mainPage
             }
@@ -57,6 +61,7 @@ struct HomeView: View {
                 hasCountedLaunch = true
             }
             watchSync.refreshStatus()
+            scheduleWatchInstallReminderIfNeeded()
             maybePromptForReview()
             syncTrialStateToWatch()
             syncPresetStateToWatch()
@@ -80,6 +85,12 @@ struct HomeView: View {
         }
         .onChange(of: store.maxHeartRateAlertBPM) { _, _ in
             syncHeartRateAlertStateToWatch()
+        }
+        .onChange(of: watchSync.isPaired) { _, _ in
+            scheduleWatchInstallReminderIfNeeded()
+        }
+        .onChange(of: watchSync.isWatchAppInstalled) { _, _ in
+            scheduleWatchInstallReminderIfNeeded()
         }
         .alert(L10n.string("timer.edit.alert_title"), isPresented: Binding(
             get: { editingPresetIndex != nil },
@@ -150,6 +161,22 @@ struct HomeView: View {
                     Button {
                         softTap()
                         withAnimation(.easeInOut(duration: 0.2)) {
+                            showingInsights = true
+                        }
+                    } label: {
+                        Label(L10n.string("insights.open_button"), systemImage: "chart.xyaxis.line")
+                            .labelStyle(.iconOnly)
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundStyle(.white)
+                            .padding(8)
+                            .background(AppTheme.card.opacity(0.9), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(Text("insights.open_button"))
+
+                    Button {
+                        softTap()
+                        withAnimation(.easeInOut(duration: 0.2)) {
                             showingSupport = true
                         }
                     } label: {
@@ -176,6 +203,46 @@ struct HomeView: View {
                 }
 
                 sessionsPanel
+            }
+            .frame(maxWidth: .infinity, alignment: .top)
+            .padding(.horizontal, 8)
+            .safeAreaPadding(.top, 56)
+            .safeAreaPadding(.bottom, 12)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .scrollIndicators(.hidden)
+    }
+
+    private var insightsPage: some View {
+        ScrollView {
+            VStack(spacing: 12) {
+                HStack {
+                    Button {
+                        softTap()
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            showingInsights = false
+                        }
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "chevron.left")
+                            Text("support.back")
+                        }
+                        .font(AppTheme.accentFont(14))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 8)
+                        .background(AppTheme.card.opacity(0.9), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    }
+                    .buttonStyle(.plain)
+
+                    Spacer()
+                }
+
+                insightsHeaderPanel
+                insightsSummaryPanel
+                weeklyHeatChartPanel
+                durationTrendChartPanel
+                heatMixPanel
             }
             .frame(maxWidth: .infinity, alignment: .top)
             .padding(.horizontal, 8)
@@ -663,6 +730,216 @@ struct HomeView: View {
         .panelStyle()
     }
 
+
+    private var insightsHeaderPanel: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("insights.section_title")
+                .font(AppTheme.titleFont(30))
+                .foregroundStyle(AppTheme.sand)
+                .minimumScaleFactor(0.75)
+                .lineLimit(1)
+
+            Text("insights.subtitle")
+                .font(AppTheme.bodyFont(13))
+                .foregroundStyle(.white.opacity(0.86))
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .panelStyle()
+    }
+
+    private var insightsSummaryPanel: some View {
+        let summary = insightSummary
+
+        return LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
+            InsightMetricCard(titleKey: "insights.metric.month_heat", value: formatMinutes(summary.monthHeatMinutes))
+            InsightMetricCard(titleKey: "insights.metric.month_sessions", value: "\(summary.monthSessions)")
+            InsightMetricCard(titleKey: "insights.metric.average_duration", value: formatMinutes(summary.averageDurationMinutes))
+            InsightMetricCard(titleKey: "insights.metric.average_hr", value: summary.averageHeartRate > 0 ? L10n.format("insights.value.bpm", summary.averageHeartRate) : L10n.string("insights.value.no_data"))
+        }
+        .panelStyle()
+    }
+
+    private var weeklyHeatChartPanel: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("insights.chart.weekly_heat")
+                .font(AppTheme.accentFont(16))
+
+            if weeklyHeatRows.isEmpty {
+                insightEmptyText
+            } else {
+                Chart(weeklyHeatRows) { row in
+                    BarMark(
+                        x: .value(L10n.string("insights.axis.week"), row.label),
+                        y: .value(L10n.string("insights.axis.minutes"), row.minutes)
+                    )
+                    .foregroundStyle(AppTheme.steam.gradient)
+                    .cornerRadius(5)
+                }
+                .chartYAxis {
+                    AxisMarks(position: .leading) { value in
+                        AxisGridLine().foregroundStyle(.white.opacity(0.12))
+                        AxisValueLabel().foregroundStyle(.white.opacity(0.7))
+                    }
+                }
+                .chartXAxis {
+                    AxisMarks { _ in
+                        AxisValueLabel().foregroundStyle(.white.opacity(0.7))
+                    }
+                }
+                .frame(height: 190)
+            }
+        }
+        .panelStyle()
+    }
+
+    private var durationTrendChartPanel: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("insights.chart.duration_trend")
+                .font(AppTheme.accentFont(16))
+
+            if durationTrendRows.count < 2 {
+                insightEmptyText
+            } else {
+                Chart(durationTrendRows) { row in
+                    LineMark(
+                        x: .value(L10n.string("insights.axis.session"), row.index),
+                        y: .value(L10n.string("insights.axis.minutes"), row.minutes)
+                    )
+                    .foregroundStyle(AppTheme.ember)
+                    .interpolationMethod(.catmullRom)
+
+                    PointMark(
+                        x: .value(L10n.string("insights.axis.session"), row.index),
+                        y: .value(L10n.string("insights.axis.minutes"), row.minutes)
+                    )
+                    .foregroundStyle(AppTheme.sand)
+                }
+                .chartYAxis {
+                    AxisMarks(position: .leading) { _ in
+                        AxisGridLine().foregroundStyle(.white.opacity(0.12))
+                        AxisValueLabel().foregroundStyle(.white.opacity(0.7))
+                    }
+                }
+                .chartXAxis(.hidden)
+                .frame(height: 190)
+            }
+        }
+        .panelStyle()
+    }
+
+    private var heatMixPanel: some View {
+        let mix = heatMix
+        let total = max(1, mix.sauna + mix.steam)
+        let saunaRatio = CGFloat(mix.sauna) / CGFloat(total)
+        let steamRatio = CGFloat(mix.steam) / CGFloat(total)
+
+        return VStack(alignment: .leading, spacing: 10) {
+            Text("insights.chart.heat_mix")
+                .font(AppTheme.accentFont(16))
+
+            if mix.sauna + mix.steam == 0 {
+                insightEmptyText
+            } else {
+                GeometryReader { proxy in
+                    HStack(spacing: 0) {
+                        Rectangle()
+                            .fill(AppTheme.ember.gradient)
+                            .frame(width: proxy.size.width * saunaRatio)
+                        Rectangle()
+                            .fill(AppTheme.steam.gradient)
+                            .frame(width: proxy.size.width * steamRatio)
+                    }
+                }
+                .frame(height: 18)
+                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+
+                HStack {
+                    mixLegend(color: AppTheme.ember, title: L10n.string("activity.sauna"), count: mix.sauna)
+                    Spacer(minLength: 8)
+                    mixLegend(color: AppTheme.steam, title: L10n.string("activity.steam_room"), count: mix.steam)
+                }
+            }
+        }
+        .panelStyle()
+    }
+
+    private var insightEmptyText: some View {
+        Text("insights.empty")
+            .font(AppTheme.bodyFont(13))
+            .foregroundStyle(.white.opacity(0.78))
+            .fixedSize(horizontal: false, vertical: true)
+    }
+
+    private func mixLegend(color: Color, title: String, count: Int) -> some View {
+        HStack(spacing: 6) {
+            Circle()
+                .fill(color)
+                .frame(width: 8, height: 8)
+            Text("\(title) · \(count)")
+                .font(AppTheme.bodyFont(12))
+                .foregroundStyle(.white.opacity(0.8))
+                .lineLimit(1)
+                .minimumScaleFactor(0.75)
+        }
+    }
+
+    private var insightSessions: [HeatSession] {
+        store.recentSessions.sorted { $0.startDate < $1.startDate }
+    }
+
+    private var insightSummary: InsightSummary {
+        let calendar = Calendar.current
+        let now = Date()
+        let monthSessions = store.recentSessions.filter { calendar.isDate($0.startDate, equalTo: now, toGranularity: .month) }
+        let allSessions = store.recentSessions
+        let totalDurationMinutes = allSessions.reduce(0) { $0 + max(0, $1.actualDurationSeconds / 60) }
+        let hrSessions = allSessions.filter { $0.averageHeartRate > 0 }
+        let averageHR = hrSessions.isEmpty ? 0 : Int((hrSessions.reduce(0.0) { $0 + $1.averageHeartRate } / Double(hrSessions.count)).rounded())
+
+        return InsightSummary(
+            monthHeatMinutes: monthSessions.reduce(0) { $0 + max(0, $1.actualDurationSeconds / 60) },
+            monthSessions: monthSessions.count,
+            averageDurationMinutes: allSessions.isEmpty ? 0 : totalDurationMinutes / allSessions.count,
+            averageHeartRate: averageHR
+        )
+    }
+
+    private var weeklyHeatRows: [WeeklyHeatRow] {
+        let calendar = Calendar.current
+        let startOfThisWeek = calendar.dateInterval(of: .weekOfYear, for: Date())?.start ?? Date()
+        let formatter = DateFormatter()
+        formatter.setLocalizedDateFormatFromTemplate("MMM d")
+
+        return (0..<8).compactMap { offset in
+            guard let weekStart = calendar.date(byAdding: .weekOfYear, value: offset - 7, to: startOfThisWeek),
+                  let weekEnd = calendar.date(byAdding: .day, value: 7, to: weekStart) else { return nil }
+            let minutes = store.recentSessions
+                .filter { $0.startDate >= weekStart && $0.startDate < weekEnd }
+                .reduce(0) { $0 + max(0, $1.actualDurationSeconds / 60) }
+            return WeeklyHeatRow(id: weekStart, label: formatter.string(from: weekStart), minutes: minutes)
+        }
+    }
+
+    private var durationTrendRows: [DurationTrendRow] {
+        insightSessions.suffix(14).enumerated().map { offset, session in
+            DurationTrendRow(id: session.id, index: offset + 1, minutes: max(0, session.actualDurationSeconds / 60))
+        }
+    }
+
+    private var heatMix: HeatMix {
+        HeatMix(
+            sauna: store.recentSessions.filter { $0.activityType == .sauna }.count,
+            steam: store.recentSessions.filter { $0.activityType == .steamRoom }.count
+        )
+    }
+
+    private func formatMinutes(_ minutes: Int) -> String {
+        if minutes >= 60 {
+            return L10n.format("insights.value.hours_minutes", minutes / 60, minutes % 60)
+        }
+        return L10n.format("insights.value.minutes", minutes)
+    }
+
     private func beginEditingPreset(index: Int) {
         guard watchReady else { return }
         guard store.presets.indices.contains(index) else { return }
@@ -705,6 +982,13 @@ struct HomeView: View {
         WatchSyncManager.shared.sendHeartRateAlerts(min: store.minHeartRateAlertBPM, max: store.maxHeartRateAlertBPM)
     }
 
+    private func scheduleWatchInstallReminderIfNeeded() {
+        SaunaLogLocalNotificationManager.shared.scheduleWatchInstallReminderIfNeeded(
+            isPaired: watchSync.isPaired,
+            isWatchAppInstalled: watchSync.isWatchAppInstalled
+        )
+    }
+
     private func softTap() {
         let generator = UIImpactFeedbackGenerator(style: .light)
         generator.impactOccurred()
@@ -726,6 +1010,54 @@ struct HomeView: View {
             .addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
         return URL(string: "mailto:app.inventory.me@gmail.com?subject=\(subject)")!
     }
+}
+
+
+private struct InsightMetricCard: View {
+    let titleKey: String
+    let value: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 5) {
+            Text(L10n.string(titleKey))
+                .font(AppTheme.bodyFont(11))
+                .foregroundStyle(.white.opacity(0.72))
+                .lineLimit(2)
+                .minimumScaleFactor(0.75)
+            Text(value)
+                .font(AppTheme.accentFont(22))
+                .foregroundStyle(AppTheme.sand)
+                .lineLimit(1)
+                .minimumScaleFactor(0.65)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(12)
+        .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+    }
+}
+
+private struct InsightSummary {
+    let monthHeatMinutes: Int
+    let monthSessions: Int
+    let averageDurationMinutes: Int
+    let averageHeartRate: Int
+}
+
+private struct WeeklyHeatRow: Identifiable {
+    let id: Date
+    let label: String
+    let minutes: Int
+}
+
+private struct DurationTrendRow: Identifiable {
+    let id: UUID
+    let index: Int
+    let minutes: Int
+}
+
+private struct HeatMix {
+    let sauna: Int
+    let steam: Int
 }
 
 private struct LinkRow: View {
