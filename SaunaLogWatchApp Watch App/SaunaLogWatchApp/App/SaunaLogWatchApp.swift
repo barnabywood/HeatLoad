@@ -52,6 +52,7 @@ struct SaunaLogWatchApp: App {
             .onChange(of: scenePhase) { _, phase in
                 if phase == .active {
                     WatchSyncManager.shared.activate()
+                    requestTrialSyncIfLocked()
                     showsLaunchSplash = true
                     scheduleSplashDismiss()
                 }
@@ -86,11 +87,17 @@ struct SaunaLogWatchApp: App {
             store.replacePresets(presets, preferredSelected: selectedPreset)
         }
 
+        requestTrialSyncIfLocked()
         WatchSyncManager.shared.sendTrialProgress(
             sessionsCompleted: trial.sessionsCompleted,
             lifetimeSessionsCompleted: trial.lifetimeSessionsCompleted,
             hasUnlocked: trial.hasUnlocked
         )
+    }
+
+    private func requestTrialSyncIfLocked() {
+        guard !trial.canStartSession else { return }
+        WatchSyncManager.shared.requestTrialProgressSync()
     }
 }
 
@@ -108,10 +115,12 @@ private struct WatchLaunchSplashView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
                     .shadow(color: .black.opacity(0.35), radius: 8, y: 3)
 
-                Text("Sauna Log")
+                Text("app.name")
                     .font(AppTheme.accentFont(18))
                     .foregroundStyle(AppTheme.sand)
                     .multilineTextAlignment(.center)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.8)
             }
             .padding(10)
         }

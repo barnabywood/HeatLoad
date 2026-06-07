@@ -56,25 +56,32 @@ struct WatchHomeView: View {
         }
         .onAppear {
             requestNotificationAuthorizationIfNeeded()
+            requestUnlockStateIfNeeded()
+        }
+        .onChange(of: trial.sessionsCompleted) { _, _ in
+            requestUnlockStateIfNeeded()
+        }
+        .onChange(of: trial.hasUnlocked) { _, _ in
+            requestUnlockStateIfNeeded()
         }
         .onChange(of: health.currentHeartRate) { _, bpm in
             evaluateHeartRateAlerts(bpm)
         }
-        .alert("Session", isPresented: Binding(get: { alertText != nil }, set: { _ in alertText = nil })) {
-            Button("OK", role: .cancel) {}
+        .alert(L10n.string("watch.alert.session_title"), isPresented: Binding(get: { alertText != nil }, set: { _ in alertText = nil })) {
+            Button(L10n.string("actions.ok"), role: .cancel) {}
         } message: {
             Text(alertText ?? "")
         }
-        .confirmationDialog("Add more time", isPresented: $showingAddTimeOptions, titleVisibility: .visible) {
+        .confirmationDialog(L10n.string("session.add_time.dialog_title"), isPresented: $showingAddTimeOptions, titleVisibility: .visible) {
             ForEach(store.presets.prefix(4), id: \.self) { seconds in
                 Button(store.format(seconds: seconds)) {
                     addMoreTime(seconds)
                 }
             }
 
-            Button("Cancel", role: .cancel) {}
+            Button(L10n.string("actions.cancel"), role: .cancel) {}
         } message: {
-            Text("Choose how much time to add to this session.")
+            Text("session.add_time.dialog_message")
         }
     }
 
@@ -94,8 +101,8 @@ struct WatchHomeView: View {
         VStack(spacing: 8) {
             Spacer(minLength: 10)
 
-            activityButton(.sauna, symbol: "flame.fill", subtitle: "Dry heat", isPrimary: true)
-            activityButton(.steamRoom, symbol: "drop.fill", subtitle: "Humid heat", isPrimary: false)
+            activityButton(.sauna, symbol: "flame.fill", subtitleKey: "activity.sauna.subtitle", isPrimary: true)
+            activityButton(.steamRoom, symbol: "drop.fill", subtitleKey: "activity.steam_room.subtitle", isPrimary: false)
 
             Spacer(minLength: 6)
         }
@@ -127,7 +134,7 @@ struct WatchHomeView: View {
                 }
             }
             SlideToConfirm(
-                label: trial.canStartSession ? "Slide to Start" : "Unlock on iPhone",
+                label: trial.canStartSession ? L10n.string("session.start_slider") : L10n.string("session.unlock_on_iphone"),
                 tint: AppTheme.sand,
                 enabled: trial.canStartSession
             ) {
@@ -152,18 +159,19 @@ struct WatchHomeView: View {
                 }
 
                 compactPanel {
-                    metricRow("HR", value: heartRateText)
-                    metricRow("Active kcal", value: String(Int(health.currentActiveCalories.rounded())))
-                    metricRow("Total kcal", value: String(Int(health.currentTotalCalories.rounded())))
+                    metricRow("metric.heart_rate.short", value: heartRateText)
+                    metricRow("metric.active_calories", value: String(Int(health.currentActiveCalories.rounded())))
+                    metricRow("metric.total_calories", value: String(Int(health.currentTotalCalories.rounded())))
 
-                    Toggle("Cold Shower", isOn: $hadColdShower)
+                    Toggle(L10n.string("session.cold_shower"), isOn: $hadColdShower)
                         .tint(AppTheme.steam)
                         .foregroundStyle(.white)
                         .font(AppTheme.bodyFont(12))
+                        .lineLimit(2)
                         .padding(.top, 1)
 
                     if store.countdownRemainingSeconds == 0 {
-                        Button("Add more time") {
+                        Button(L10n.string("session.add_time.button")) {
                             showingAddTimeOptions = true
                             WKInterfaceDevice.current().play(.click)
                         }
@@ -171,12 +179,14 @@ struct WatchHomeView: View {
                         .tint(AppTheme.steam)
                         .foregroundStyle(.white)
                         .font(AppTheme.accentFont(14))
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.75)
                         .padding(.top, 1)
                     }
                 }
 
                 SlideToConfirm(
-                    label: isEndingSession ? "Saving…" : "Slide to Stop",
+                    label: isEndingSession ? L10n.string("session.saving") : L10n.string("session.stop_slider"),
                     tint: AppTheme.sand,
                     enabled: !isEndingSession
                 ) {
@@ -195,7 +205,7 @@ struct WatchHomeView: View {
         return "--"
     }
 
-    private func activityButton(_ type: HeatActivityType, symbol: String, subtitle: String, isPrimary: Bool) -> some View {
+    private func activityButton(_ type: HeatActivityType, symbol: String, subtitleKey: String, isPrimary: Bool) -> some View {
         Button {
             selectActivity(type)
         } label: {
@@ -205,11 +215,15 @@ struct WatchHomeView: View {
                     .frame(width: 22)
 
                 VStack(alignment: .leading, spacing: 1) {
-                    Text(type == .steamRoom ? "Steam Room" : "Sauna")
+                    Text(type.displayName)
                         .font(AppTheme.accentFont(isPrimary ? 17 : 16))
-                    Text(subtitle)
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.8)
+                    Text(L10n.string(subtitleKey))
                         .font(AppTheme.bodyFont(12))
                         .foregroundStyle(.white.opacity(0.82))
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.75)
                 }
 
                 Spacer()
@@ -231,16 +245,18 @@ struct WatchHomeView: View {
         .buttonStyle(.plain)
     }
 
-    private func metricRow(_ label: String, value: String) -> some View {
+    private func metricRow(_ labelKey: String, value: String) -> some View {
         HStack(spacing: 6) {
-            Text(label)
+            Text(L10n.string(labelKey))
                 .font(AppTheme.bodyFont(13))
                 .foregroundStyle(.white.opacity(0.95))
+                .lineLimit(2)
+                .minimumScaleFactor(0.7)
 
             Spacer()
 
             Text(value)
-                .font(AppTheme.accentFont(label == "HR" ? 24 : 19))
+                .font(AppTheme.accentFont(labelKey == "metric.heart_rate.short" ? 24 : 19))
                 .monospacedDigit()
                 .foregroundStyle(.white)
         }
@@ -301,9 +317,15 @@ struct WatchHomeView: View {
         }
     }
 
+    private func requestUnlockStateIfNeeded() {
+        guard !trial.canStartSession else { return }
+        WatchSyncManager.shared.requestTrialProgressSync()
+    }
+
     private func startSession() {
         guard trial.canStartSession else {
-            alertText = "Free trial complete. Unlock from iPhone to continue."
+            requestUnlockStateIfNeeded()
+            alertText = L10n.string("trial.watch_complete")
             WKInterfaceDevice.current().play(.failure)
             return
         }
@@ -322,7 +344,7 @@ struct WatchHomeView: View {
                 scheduleSessionEndAlert(after: store.selectedPresetSeconds)
                 WKInterfaceDevice.current().play(.start)
             } catch {
-                alertText = "Could not start session. \(error.localizedDescription)"
+                alertText = L10n.format("session.error.start_failed", error.localizedDescription)
                 WKInterfaceDevice.current().play(.failure)
             }
         }
@@ -376,7 +398,7 @@ struct WatchHomeView: View {
                         metrics: fallbackMetrics
                     )
 
-                    alertText = "Saved session locally. Health write failed: \(error.localizedDescription)"
+                    alertText = L10n.format("session.error.saved_health_failed", error.localizedDescription)
                 }
             }
             return nil
@@ -433,8 +455,8 @@ struct WatchHomeView: View {
         guard seconds > 0 else { return }
 
         let content = UNMutableNotificationContent()
-        content.title = "Session Complete"
-        content.body = "Time is up. Leave heat or extend session."
+        content.title = L10n.string("notification.session_complete.title")
+        content.body = L10n.string("notification.session_complete.body")
         content.sound = .default
         content.interruptionLevel = .timeSensitive
 
@@ -459,8 +481,8 @@ struct WatchHomeView: View {
             } else {
                 lastMinHRAlertDate = now
                 pushHeartRateAlert(
-                    title: "Low Heart Rate",
-                    body: "HR \(Int(bpm.rounded())) bpm is below your minimum \(minBPM)."
+                    title: L10n.string("notification.low_hr.title"),
+                    body: L10n.format("notification.low_hr.body", Int(bpm.rounded()), minBPM)
                 )
                 WKInterfaceDevice.current().play(.directionDown)
             }
@@ -472,8 +494,8 @@ struct WatchHomeView: View {
             } else {
                 lastMaxHRAlertDate = now
                 pushHeartRateAlert(
-                    title: "High Heart Rate",
-                    body: "HR \(Int(bpm.rounded())) bpm is above your maximum \(maxBPM)."
+                    title: L10n.string("notification.high_hr.title"),
+                    body: L10n.format("notification.high_hr.body", Int(bpm.rounded()), maxBPM)
                 )
                 WKInterfaceDevice.current().play(.failure)
             }
@@ -523,6 +545,10 @@ private struct SlideToConfirm: View {
                     .font(AppTheme.bodyFont(12))
                     .foregroundStyle(.white.opacity(enabled ? 0.95 : 0.6))
                     .frame(maxWidth: .infinity)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.65)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 34)
 
                 Circle()
                     .fill(.white)

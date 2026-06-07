@@ -12,6 +12,7 @@ public final class WatchSyncManager: NSObject, ObservableObject {
         static let selectedPresetSeconds = "selectedPresetSeconds"
         static let minHeartRateAlertBPM = "minHeartRateAlertBPM"
         static let maxHeartRateAlertBPM = "maxHeartRateAlertBPM"
+        static let trialStateRequest = "trialStateRequest"
     }
 
     public static let shared = WatchSyncManager()
@@ -31,6 +32,7 @@ public final class WatchSyncManager: NSObject, ObservableObject {
 
     public var onSessionReceived: ((HeatSession) -> Void)?
     public var onTrialProgressReceived: ((Int, Int, Bool) -> Void)?
+    public var onTrialProgressRequested: (() -> Void)?
     public var onPresetsReceived: (([Int], Int) -> Void)?
     public var onHeartRateAlertsReceived: ((Int?, Int?) -> Void)?
 
@@ -106,19 +108,49 @@ public final class WatchSyncManager: NSObject, ObservableObject {
             Keys.trialHasUnlocked: hasUnlocked
         ]
 
+        do {
+            var context = session.applicationContext
+            context[Keys.trialSessionsCompleted] = sessionsCompleted
+            context[Keys.trialLifetimeSessionsCompleted] = lifetimeSessionsCompleted
+            context[Keys.trialHasUnlocked] = hasUnlocked
+            try session.updateApplicationContext(context)
+        } catch {
+            // Best effort; sendMessage/transferUserInfo below still have a chance to deliver.
+        }
+
         if session.isReachable {
-            session.sendMessage(message, replyHandler: nil) { _ in }
-        } else {
-            do {
-                var context = session.applicationContext
-                context[Keys.trialSessionsCompleted] = sessionsCompleted
-                context[Keys.trialLifetimeSessionsCompleted] = lifetimeSessionsCompleted
-                context[Keys.trialHasUnlocked] = hasUnlocked
-                try session.updateApplicationContext(context)
-            } catch {
-                // Intentionally ignored for starter template.
+            session.sendMessage(message, replyHandler: nil) { [weak self] _ in
+                self?.session.transferUserInfo(message)
             }
         }
+
+        if hasUnlocked {
+            session.transferUserInfo(message)
+        }
+    }
+
+    public func requestTrialProgressSync() {
+        guard WCSession.isSupported() else { return }
+
+        let message: [String: Any] = [
+            Keys.trialStateRequest: Date().timeIntervalSince1970
+        ]
+
+        do {
+            var context = session.applicationContext
+            context[Keys.trialStateRequest] = Date().timeIntervalSince1970
+            try session.updateApplicationContext(context)
+        } catch {
+            // Best effort; sendMessage/transferUserInfo below still have a chance to deliver.
+        }
+
+        if session.isReachable {
+            session.sendMessage(message, replyHandler: nil) { [weak self] _ in
+                self?.session.transferUserInfo(message)
+            }
+        }
+
+        session.transferUserInfo(message)
     }
 
     public func sendPresets(_ presetSeconds: [Int], selectedPresetSeconds: Int) {
@@ -217,6 +249,12 @@ extension WatchSyncManager: WCSessionDelegate {
            let hasUnlocked = context[Keys.trialHasUnlocked] as? Bool {
             publishOnMain {
                 self.onTrialProgressReceived?(sessionsCompleted, lifetimeSessionsCompleted, hasUnlocked)
+            }
+        }
+
+        if context[Keys.trialStateRequest] != nil {
+            publishOnMain {
+                self.onTrialProgressRequested?()
             }
         }
 

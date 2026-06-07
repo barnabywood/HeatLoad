@@ -88,7 +88,7 @@ public final class PurchaseManager: ObservableObject {
         do {
             products = try await Product.products(for: productIDs)
             if products.isEmpty {
-                setFailure("No purchasable product found. Check App Store Connect product ID and status.")
+                setFailure(L10n.string("purchase.error.no_product"))
             } else {
                 state = .idle
             }
@@ -116,11 +116,11 @@ public final class PurchaseManager: ObservableObject {
                 lastErrorMessage = nil
                 state = .idle
             case .pending:
-                setFailure("Purchase is pending approval.")
+                setFailure(L10n.string("purchase.error.pending"))
             case .userCancelled:
                 state = .idle
             @unknown default:
-                setFailure("Unknown purchase state.")
+                setFailure(L10n.string("purchase.error.unknown_state"))
             }
         } catch {
             setFailure(error.localizedDescription)
@@ -140,7 +140,7 @@ public final class PurchaseManager: ObservableObject {
             lastErrorMessage = nil
             state = .idle
         } else {
-            setFailure("No previous purchase found to restore.")
+            setFailure(L10n.string("purchase.error.no_restore"))
         }
     }
 
@@ -152,7 +152,7 @@ public final class PurchaseManager: ObservableObject {
     private func verify<T>(_ result: VerificationResult<T>) throws -> T {
         switch result {
         case .unverified:
-            throw NSError(domain: "PurchaseManager", code: 1, userInfo: [NSLocalizedDescriptionKey: "Purchase verification failed."])
+            throw NSError(domain: "PurchaseManager", code: 1, userInfo: [NSLocalizedDescriptionKey: L10n.string("purchase.error.verification_failed")])
         case .verified(let signed):
             return signed
         }

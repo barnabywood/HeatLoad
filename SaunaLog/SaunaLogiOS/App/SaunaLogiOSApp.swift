@@ -3,6 +3,8 @@ import UserNotifications
 
 @main
 struct SaunaLogiOSApp: App {
+    @Environment(\.scenePhase) private var scenePhase
+
     @StateObject private var trial = TrialManager()
     @StateObject private var purchase: PurchaseManager
     @StateObject private var store = SessionStore()
@@ -45,18 +47,22 @@ struct SaunaLogiOSApp: App {
                         hasUnlocked: trial.hasUnlocked
                     )
                 }
+                WatchSyncManager.shared.onTrialProgressRequested = {
+                    WatchSyncManager.shared.sendTrialProgress(
+                        sessionsCompleted: trial.sessionsCompleted,
+                        lifetimeSessionsCompleted: trial.lifetimeSessionsCompleted,
+                        hasUnlocked: trial.hasUnlocked
+                    )
+                }
                 WatchSyncManager.shared.onPresetsReceived = { presets, selectedPreset in
                     store.replacePresets(presets, preferredSelected: selectedPreset)
                 }
 
-                WatchSyncManager.shared.sendTrialProgress(
-                    sessionsCompleted: trial.sessionsCompleted,
-                    lifetimeSessionsCompleted: trial.lifetimeSessionsCompleted,
-                    hasUnlocked: trial.hasUnlocked
-                )
+                purchase.startObservingTransactions()
+                await purchase.refreshEntitlements()
+                syncTrialStateToWatch()
                 WatchSyncManager.shared.sendPresets(store.presets, selectedPresetSeconds: store.selectedPresetSeconds)
 
-                purchase.startObservingTransactions()
                 await purchase.loadProducts()
                 SaunaLogLocalNotificationManager.shared.scheduleUnlockReminderIfNeeded(
                     sessionsCompleted: trial.sessionsCompleted,
@@ -71,7 +77,23 @@ struct SaunaLogiOSApp: App {
                     // Keep local history if Health access is unavailable.
                 }
             }
+            .onChange(of: scenePhase) { _, phase in
+                guard phase == .active else { return }
+                WatchSyncManager.shared.activate()
+                Task {
+                    await purchase.refreshEntitlements()
+                    syncTrialStateToWatch()
+                }
+            }
         }
+    }
+
+    private func syncTrialStateToWatch() {
+        WatchSyncManager.shared.sendTrialProgress(
+            sessionsCompleted: trial.sessionsCompleted,
+            lifetimeSessionsCompleted: trial.lifetimeSessionsCompleted,
+            hasUnlocked: trial.hasUnlocked
+        )
     }
 }
 
@@ -139,7 +161,7 @@ private struct DebugRootBackgroundView: View {
                     .padding(4)
 
                 VStack {
-                    Text("DEBUG ROOT")
+                    Text("debug.root.title")
                         .font(.system(size: 14, weight: .bold))
                     Text("\(Int(proxy.size.width)) x \(Int(proxy.size.height))")
                         .font(.system(size: 12, weight: .medium))
@@ -191,9 +213,11 @@ private struct LaunchSplashView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 34, style: .continuous))
                     .shadow(color: .black.opacity(0.3), radius: 14, y: 7)
 
-                Text("Sauna Log")
+                Text("app.name")
                     .font(AppTheme.titleFont(34))
                     .foregroundStyle(AppTheme.sand)
+                    .minimumScaleFactor(0.75)
+                    .lineLimit(1)
             }
             .padding(24)
         }

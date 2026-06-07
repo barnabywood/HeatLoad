@@ -17,16 +17,26 @@ struct HomeView: View {
     @State private var editingPresetIndex: Int?
     @State private var editingMinutesInput = ""
     @State private var showingSupport = false
-@State private var pendingDeletionSession: HeatSession?
-@State private var showingDeleteConfirmation = false
+    @State private var pendingDeletionSession: HeatSession?
+    @State private var showingDeleteConfirmation = false
     @State private var deleteFailureMessage: String?
     @State private var hasCountedLaunch = false
     @AppStorage("ios.launchCount") private var launchCount = 0
 
-    private let privacyPolicyURL = URL(string: "https://raw.githubusercontent.com/barnabywood/HeatLoad/main/privacy-policy.md")!
-    private let contactURL = URL(string: "mailto:app.inventory.me@gmail.com?subject=Sauna%20Log%20Support")!
-    private let featureRequestURL = URL(string: "mailto:app.inventory.me@gmail.com?subject=Sauna%20Log%20Feature%20Request")!
     private let appReviewURL = URL(string: "itms-apps://itunes.apple.com/app/viewContentsUserReviews/id6759159351?action=write-review")!
+
+    private var privacyPolicyURL: URL {
+        URL(string: L10n.string("support.privacy_policy_url"))
+            ?? URL(string: "https://barnabywood.github.io/HeatLoad/privacy-policy.html")!
+    }
+
+    private var contactURL: URL {
+        mailURL(subjectKey: "support.email.subject")
+    }
+
+    private var featureRequestURL: URL {
+        mailURL(subjectKey: "support.feature_request.subject")
+    }
 
     private var watchReady: Bool {
         watchSync.isWatchReady
@@ -71,7 +81,7 @@ struct HomeView: View {
         .onChange(of: store.maxHeartRateAlertBPM) { _, _ in
             syncHeartRateAlertStateToWatch()
         }
-        .alert("Edit Timer", isPresented: Binding(
+        .alert(L10n.string("timer.edit.alert_title"), isPresented: Binding(
             get: { editingPresetIndex != nil },
             set: { isPresented in
                 if !isPresented {
@@ -79,19 +89,19 @@ struct HomeView: View {
                 }
             }
         )) {
-            TextField("Minutes", text: $editingMinutesInput)
+            TextField(L10n.string("timer.edit.minutes_placeholder"), text: $editingMinutesInput)
                 .keyboardType(.numberPad)
 
-            Button("Save") {
+            Button(L10n.string("actions.save")) {
                 saveEditedPreset()
             }
 
-            Button("Cancel", role: .cancel) {}
+            Button(L10n.string("actions.cancel"), role: .cancel) {}
         } message: {
-            Text("Set the timer length in minutes.")
+            Text("timer.edit.message")
         }
-        .alert("Delete Session?", isPresented: $showingDeleteConfirmation, presenting: pendingDeletionSession) { session in
-            Button("Delete", role: .destructive) {
+        .alert(L10n.string("history.delete.alert_title"), isPresented: $showingDeleteConfirmation, presenting: pendingDeletionSession) { session in
+            Button(L10n.string("actions.delete"), role: .destructive) {
                 Task {
                     await MainActor.run {
                         withAnimation(.easeInOut(duration: 0.2)) {
@@ -106,19 +116,24 @@ struct HomeView: View {
                     } catch {
                         let nsError = error as NSError
                         await MainActor.run {
-                            deleteFailureMessage = "Removed from Recent, but Apple Health delete failed (\(nsError.domain) \(nsError.code)): \(nsError.localizedDescription)"
+                            deleteFailureMessage = L10n.format(
+                                "history.delete.health_failed",
+                                nsError.domain,
+                                nsError.code,
+                                nsError.localizedDescription
+                            )
                         }
                     }
                 }
             }
-            Button("Cancel", role: .cancel) {
+            Button(L10n.string("actions.cancel"), role: .cancel) {
                 pendingDeletionSession = nil
             }
         } message: { session in
-            Text("Remove this \(session.activityType.displayName.lowercased()) record from Recent and Apple Health?")
+            Text(L10n.format("history.delete.message", session.activityType.displayName.lowercased()))
         }
-        .alert("Delete Failed", isPresented: Binding(get: { deleteFailureMessage != nil }, set: { if !$0 { deleteFailureMessage = nil } })) {
-            Button("OK", role: .cancel) {
+        .alert(L10n.string("history.delete.failed_title"), isPresented: Binding(get: { deleteFailureMessage != nil }, set: { if !$0 { deleteFailureMessage = nil } })) {
+            Button(L10n.string("actions.ok"), role: .cancel) {
                 deleteFailureMessage = nil
             }
         } message: {
@@ -138,7 +153,8 @@ struct HomeView: View {
                             showingSupport = true
                         }
                     } label: {
-                        Image(systemName: "gearshape")
+                        Label(L10n.string("support.settings_button"), systemImage: "gearshape")
+                            .labelStyle(.iconOnly)
                             .font(.system(size: 18, weight: .semibold))
                             .foregroundStyle(.white)
                             .padding(8)
@@ -182,7 +198,7 @@ struct HomeView: View {
                     } label: {
                         HStack(spacing: 4) {
                             Image(systemName: "chevron.left")
-                            Text("Back")
+                            Text("support.back")
                         }
                         .font(AppTheme.accentFont(14))
                         .foregroundStyle(.white)
@@ -213,8 +229,9 @@ struct HomeView: View {
                     .fill(watchReady ? Color.green : AppTheme.ember)
                     .frame(width: 9, height: 9)
 
-                Text(watchReady ? "Watch Ready" : "Watch Not Ready")
+                Text(watchReady ? L10n.string("watch.status.ready") : L10n.string("watch.status.not_ready"))
                     .font(AppTheme.accentFont(14))
+                    .lineLimit(2)
 
                 Spacer()
             }
@@ -228,34 +245,37 @@ struct HomeView: View {
 
     private var watchStatusDetail: String {
         guard WCSession.isSupported() else {
-            return "Watch connectivity is not supported on this device."
+            return L10n.string("watch.status.unsupported")
         }
 
         if !watchSync.isPaired {
-            return "No paired Apple Watch detected."
+            return L10n.string("watch.status.not_paired")
         }
 
         if !watchSync.isWatchAppInstalled {
-            return "Sauna Log is not installed on your Apple Watch."
+            return L10n.string("watch.status.not_installed")
         }
 
         if !watchSync.isReachable {
-            return "Watch app installed. Sessions sync back to iPhone automatically when connected."
+            return L10n.string("watch.status.offline_sync")
         }
 
-        return "Ready to sync sessions with your watch."
+        return L10n.string("watch.status.ready_detail")
     }
 
     private var hero: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text("Sauna Log")
+            Text("app.name")
                 .font(AppTheme.titleFont(36))
                 .foregroundStyle(AppTheme.sand)
+                .minimumScaleFactor(0.75)
+                .lineLimit(1)
 
-            Text("Track sauna or steam sessions on Apple Watch with timer presets, heart-rate capture, and Apple Health logging.")
+            Text("home.hero.subtitle")
                 .font(AppTheme.bodyFont(14))
                 .foregroundStyle(.white.opacity(0.94))
                 .lineSpacing(2)
+                .fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(16)
@@ -269,14 +289,16 @@ struct HomeView: View {
     private var presetsPanel: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
-                Text("Timers")
+                Text("timer.section_title")
                     .font(AppTheme.accentFont(16))
 
                 Spacer()
 
-                Text(watchReady ? "Tap Timer to Edit" : "Install watch app to edit")
+                Text(watchReady ? L10n.string("timer.edit_hint") : L10n.string("timer.edit_disabled_hint"))
                     .font(AppTheme.bodyFont(12))
                     .foregroundStyle(.white.opacity(0.82))
+                    .multilineTextAlignment(.trailing)
+                    .fixedSize(horizontal: false, vertical: true)
             }
 
             HStack(spacing: 8) {
@@ -287,6 +309,8 @@ struct HomeView: View {
                     } label: {
                         Text(store.format(seconds: preset))
                             .frame(maxWidth: .infinity)
+                            .minimumScaleFactor(0.85)
+                            .lineLimit(1)
                     }
                     .buttonStyle(.borderedProminent)
                     .tint(AppTheme.steam)
@@ -300,34 +324,39 @@ struct HomeView: View {
 
     private var heartRateAlertsPanel: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("Heart Rate Alerts")
+            Text("heart_rate.section_title")
                 .font(AppTheme.accentFont(16))
 
-            Toggle("Minimum Alert", isOn: minAlertEnabledBinding)
+            Toggle(L10n.string("heart_rate.minimum_alert"), isOn: minAlertEnabledBinding)
                 .tint(AppTheme.steam)
                 .font(AppTheme.bodyFont(14))
+                .fixedSize(horizontal: false, vertical: true)
 
             if store.minHeartRateAlertBPM != nil {
                 Stepper(value: minAlertValueBinding, in: 40...220, step: 1) {
-                    Text("Min: \(store.minHeartRateAlertBPM ?? 90) bpm")
+                    Text(L10n.format("heart_rate.min_value", store.minHeartRateAlertBPM ?? 90))
                         .font(AppTheme.bodyFont(13))
+                        .fixedSize(horizontal: false, vertical: true)
                 }
             }
 
-            Toggle("Maximum Alert", isOn: maxAlertEnabledBinding)
+            Toggle(L10n.string("heart_rate.maximum_alert"), isOn: maxAlertEnabledBinding)
                 .tint(AppTheme.steam)
                 .font(AppTheme.bodyFont(14))
+                .fixedSize(horizontal: false, vertical: true)
 
             if store.maxHeartRateAlertBPM != nil {
                 Stepper(value: maxAlertValueBinding, in: 40...220, step: 1) {
-                    Text("Max: \(store.maxHeartRateAlertBPM ?? 170) bpm")
+                    Text(L10n.format("heart_rate.max_value", store.maxHeartRateAlertBPM ?? 170))
                         .font(AppTheme.bodyFont(13))
+                        .fixedSize(horizontal: false, vertical: true)
                 }
             }
 
-            Text("Watch gives haptic alerts if heart rate goes outside your range.")
+            Text("heart_rate.help")
                 .font(AppTheme.bodyFont(12))
                 .foregroundStyle(.white.opacity(0.78))
+                .fixedSize(horizontal: false, vertical: true)
         }
         .panelStyle()
     }
@@ -372,57 +401,44 @@ struct HomeView: View {
 
     private var trialPanel: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Free Trial")
+            Text("trial.section_title")
                 .font(AppTheme.accentFont(16))
 
-            Text("\(trial.remainingFreeSessions) of 3 left")
+            Text(L10n.format("trial.remaining", trial.remainingFreeSessions))
                 .font(AppTheme.bodyFont(14))
 
-            Text(trial.canStartSession ? "Unlock anytime" : "Unlock to continue")
+            Text(trial.canStartSession ? L10n.string("trial.unlock_anytime") : L10n.string("trial.unlock_to_continue"))
                 .font(AppTheme.bodyFont(12))
                 .foregroundStyle(.white.opacity(0.82))
+                .fixedSize(horizontal: false, vertical: true)
 
             if !watchReady {
-                Text("Install Sauna Log on Apple Watch to start sessions. Purchase can be unlocked now.")
+                Text("trial.watch_required")
                     .font(AppTheme.bodyFont(12))
                     .foregroundStyle(.white.opacity(0.82))
+                    .fixedSize(horizontal: false, vertical: true)
             }
 
-            HStack(spacing: 8) {
-                Button("Unlock Now") {
-                    softTap()
-                    purchase.clearLastError()
-                    Task {
-                        if let product = purchase.products.first {
-                            await purchase.purchase(product)
-                        } else {
-                            await purchase.purchaseFirstAvailableProduct()
-                        }
-                    }
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: 8) {
+                    unlockButton
+                    restoreButton
                 }
-                .buttonStyle(.borderedProminent)
-                .tint(AppTheme.ember)
-                .font(AppTheme.accentFont(14))
-                .disabled(purchase.isLoadingProducts)
 
-                Button("Restore Purchase") {
-                    softTap()
-                    syncTrialStateToWatch()
-                    Task { await purchase.restore() }
+                VStack(alignment: .leading, spacing: 8) {
+                    unlockButton
+                    restoreButton
                 }
-                .buttonStyle(.bordered)
-                .tint(AppTheme.sand)
-                .font(AppTheme.accentFont(14))
-                .disabled(purchase.isLoadingProducts)
             }
 
             if purchase.isLoadingProducts {
                 HStack(spacing: 8) {
                     ProgressView()
                         .tint(.white)
-                    Text("Checking purchase availability…")
+                    Text("purchase.loading")
                         .font(AppTheme.bodyFont(12))
                         .foregroundStyle(.white.opacity(0.82))
+                        .fixedSize(horizontal: false, vertical: true)
                 }
             }
 
@@ -433,7 +449,7 @@ struct HomeView: View {
                     .fixedSize(horizontal: false, vertical: true)
 
                 HStack(spacing: 8) {
-                    Button("Retry") {
+                    Button("actions.retry") {
                         softTap()
                         Task { await purchase.loadProducts() }
                     }
@@ -441,7 +457,7 @@ struct HomeView: View {
                     .tint(AppTheme.steam)
                     .font(AppTheme.accentFont(12))
 
-                    Button("Clear") {
+                    Button("actions.clear") {
                         softTap()
                         purchase.clearLastError()
                     }
@@ -454,23 +470,80 @@ struct HomeView: View {
         .panelStyle()
     }
 
+    private var unlockButton: some View {
+        Button("trial.unlock_now") {
+            softTap()
+            purchase.clearLastError()
+            Task {
+                if let product = purchase.products.first {
+                    await purchase.purchase(product)
+                } else {
+                    await purchase.purchaseFirstAvailableProduct()
+                }
+            }
+        }
+        .buttonStyle(.borderedProminent)
+        .tint(AppTheme.ember)
+        .font(AppTheme.accentFont(14))
+        .disabled(purchase.isLoadingProducts)
+        .fixedSize(horizontal: false, vertical: true)
+    }
+
+    private var restoreButton: some View {
+        Button("trial.restore_purchase") {
+            softTap()
+            Task {
+                await purchase.restore()
+                syncTrialStateToWatch()
+            }
+        }
+        .buttonStyle(.bordered)
+        .tint(AppTheme.sand)
+        .font(AppTheme.accentFont(14))
+        .disabled(purchase.isLoadingProducts)
+        .fixedSize(horizontal: false, vertical: true)
+    }
+
     private var supportPanel: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("Support")
+            Text("support.section_title")
                 .font(AppTheme.accentFont(16))
 
-            LinkRow(title: "Privacy Policy", subtitle: "View", destination: privacyPolicyURL)
-            LinkRow(title: "Contact / Feedback", subtitle: "app.inventory.me@gmail.com", destination: contactURL)
-            LinkRow(title: "Request a Feature", subtitle: "Send idea", destination: featureRequestURL)
+            LinkRow(titleKey: "support.privacy_policy", subtitleKey: "support.view", destination: privacyPolicyURL)
+            LinkRow(titleKey: "support.contact_feedback", subtitle: "app.inventory.me@gmail.com", destination: contactURL)
+            LinkRow(titleKey: "support.request_feature", subtitleKey: "support.send_idea", destination: featureRequestURL)
+
+            Button {
+                softTap()
+                Task {
+                    await purchase.refreshEntitlements()
+                    syncTrialStateToWatch()
+                }
+            } label: {
+                HStack {
+                    Text("support.sync_unlock_watch")
+                        .font(AppTheme.accentFont(14))
+                        .fixedSize(horizontal: false, vertical: true)
+                    Spacer()
+                    Image(systemName: "applewatch.radiowaves.left.and.right")
+                        .foregroundStyle(AppTheme.steam)
+                }
+                .padding(10)
+                .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+            }
+            .buttonStyle(.plain)
+            .disabled(purchase.isLoadingProducts)
 
             VStack(alignment: .leading, spacing: 4) {
-                Text("Watch Tip")
+                Text("support.watch_tip.title")
                     .font(AppTheme.accentFont(13))
                     .foregroundStyle(.white)
-                Text("For faster return after alerts: Watch app on iPhone > General > Return to Clock > Sauna Log > Return to App.")
+                Text("support.watch_tip.body")
                     .font(AppTheme.bodyFont(12))
                     .foregroundStyle(.white.opacity(0.82))
+                    .fixedSize(horizontal: false, vertical: true)
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
             .padding(10)
             .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
 
@@ -480,8 +553,9 @@ struct HomeView: View {
                 openURL(appReviewURL)
             } label: {
                 HStack {
-                    Text("Leave a Review")
+                    Text("support.leave_review")
                         .font(AppTheme.accentFont(14))
+                        .fixedSize(horizontal: false, vertical: true)
                     Spacer()
                     Image(systemName: "star.bubble")
                         .foregroundStyle(AppTheme.sand)
@@ -490,31 +564,46 @@ struct HomeView: View {
                 .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
             }
             .buttonStyle(.plain)
+
+            Text(appVersionText)
+                .font(AppTheme.bodyFont(11))
+                .foregroundStyle(.white.opacity(0.58))
+                .frame(maxWidth: .infinity, alignment: .center)
+                .padding(.top, 4)
         }
         .panelStyle()
     }
 
     private var sessionsPanel: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("Recent")
+            Text("history.section_title")
                 .font(AppTheme.accentFont(16))
 
             if store.recentSessions.isEmpty {
-                Text("Complete a watch session to see history")
+                Text("history.empty")
                     .font(AppTheme.bodyFont(14))
                     .foregroundStyle(.white.opacity(0.84))
+                    .fixedSize(horizontal: false, vertical: true)
             } else {
                 List {
                     ForEach(Array(store.recentSessions.prefix(10))) { session in
                         VStack(alignment: .leading, spacing: 3) {
-                            Text("\(session.activityType.displayName) · \(session.actualDurationSeconds / 60)m")
+                            Text(L10n.format("history.row.title", session.activityType.displayName, session.actualDurationSeconds / 60))
                                 .font(AppTheme.accentFont(14))
-                            Text("Avg \(Int(session.averageHeartRate)) · Max \(Int(session.maxHeartRate))")
+                                .fixedSize(horizontal: false, vertical: true)
+                            Text(L10n.format("history.row.heart_rate", Int(session.averageHeartRate), Int(session.maxHeartRate)))
                                 .font(AppTheme.bodyFont(12))
                                 .foregroundStyle(.white.opacity(0.78))
-                            Text("Active \(Int(session.activeCalories.rounded())) kcal · Total \(Int(session.totalCalories.rounded())) kcal · Cold " + (session.hadColdShower ? "Yes" : "No"))
+                                .fixedSize(horizontal: false, vertical: true)
+                            Text(L10n.format(
+                                "history.row.energy_cold",
+                                Int(session.activeCalories.rounded()),
+                                Int(session.totalCalories.rounded()),
+                                session.hadColdShower ? L10n.string("common.yes") : L10n.string("common.no")
+                            ))
                                 .font(AppTheme.bodyFont(12))
                                 .foregroundStyle(.white.opacity(0.78))
+                                .fixedSize(horizontal: false, vertical: true)
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(10)
@@ -529,7 +618,7 @@ struct HomeView: View {
                                 pendingDeletionSession = session
                                 showingDeleteConfirmation = true
                             } label: {
-                                Label("Delete", systemImage: "trash")
+                                Label(L10n.string("actions.delete"), systemImage: "trash")
                             }
                         }
                     }
@@ -543,23 +632,27 @@ struct HomeView: View {
             if !store.deletedSessions.isEmpty {
                 Divider().overlay(.white.opacity(0.14))
 
-                Text("Deleted Trace")
+                Text("history.deleted_trace.title")
                     .font(AppTheme.accentFont(14))
                     .foregroundStyle(.white.opacity(0.86))
 
                 ForEach(Array(store.deletedSessions.prefix(10))) { session in
                     VStack(alignment: .leading, spacing: 3) {
-                        Text("\(session.activityType.displayName) · \(session.actualDurationSeconds / 60)m")
+                        Text(L10n.format("history.row.title", session.activityType.displayName, session.actualDurationSeconds / 60))
                             .font(AppTheme.accentFont(13))
-                        Text("Avg \(Int(session.averageHeartRate)) · Max \(Int(session.maxHeartRate))")
+                            .fixedSize(horizontal: false, vertical: true)
+                        Text(L10n.format("history.row.heart_rate", Int(session.averageHeartRate), Int(session.maxHeartRate)))
                             .font(AppTheme.bodyFont(11))
                             .foregroundStyle(.white.opacity(0.72))
-                        Text("Active \(Int(session.activeCalories.rounded())) kcal · Total \(Int(session.totalCalories.rounded())) kcal")
+                            .fixedSize(horizontal: false, vertical: true)
+                        Text(L10n.format("history.row.energy", Int(session.activeCalories.rounded()), Int(session.totalCalories.rounded())))
                             .font(AppTheme.bodyFont(11))
                             .foregroundStyle(.white.opacity(0.72))
-                        Text("Removed from Recent (Health delete verified or attempted)")
+                            .fixedSize(horizontal: false, vertical: true)
+                        Text("history.deleted_trace.note")
                             .font(AppTheme.bodyFont(10))
                             .foregroundStyle(.orange.opacity(0.9))
+                            .fixedSize(horizontal: false, vertical: true)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(10)
@@ -621,23 +714,38 @@ struct HomeView: View {
         let generator = UINotificationFeedbackGenerator()
         generator.notificationOccurred(.success)
     }
+
+    private var appVersionText: String {
+        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "-"
+        let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "-"
+        return L10n.format("support.version_format", version, build)
+    }
+
+    private func mailURL(subjectKey: String) -> URL {
+        let subject = L10n.string(subjectKey)
+            .addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+        return URL(string: "mailto:app.inventory.me@gmail.com?subject=\(subject)")!
+    }
 }
 
 private struct LinkRow: View {
-    let title: String
-    let subtitle: String
+    let titleKey: String
+    var subtitle: String? = nil
+    var subtitleKey: String? = nil
     let destination: URL
 
     var body: some View {
         Link(destination: destination) {
             HStack {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(title)
+                    Text(L10n.string(titleKey))
                         .font(AppTheme.accentFont(14))
                         .foregroundStyle(.white)
-                    Text(subtitle)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Text(subtitle ?? L10n.string(subtitleKey ?? ""))
                         .font(AppTheme.bodyFont(12))
                         .foregroundStyle(.white.opacity(0.78))
+                        .fixedSize(horizontal: false, vertical: true)
                 }
 
                 Spacer()

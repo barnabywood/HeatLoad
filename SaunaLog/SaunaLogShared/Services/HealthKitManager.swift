@@ -41,13 +41,13 @@ public final class HealthKitManager: NSObject, ObservableObject {
             throw NSError(
                 domain: "HealthKitManager",
                 code: 401,
-                userInfo: [NSLocalizedDescriptionKey: "Health permission denied. Enable Workout write access for Sauna Log in Health permissions."]
+                userInfo: [NSLocalizedDescriptionKey: L10n.string("health.error.permission_denied")]
             )
         case .notDetermined:
             throw NSError(
                 domain: "HealthKitManager",
                 code: 402,
-                userInfo: [NSLocalizedDescriptionKey: "Health permission not granted yet. Please allow access when prompted."]
+                userInfo: [NSLocalizedDescriptionKey: L10n.string("health.error.permission_not_granted")]
             )
         case .sharingAuthorized:
             break
@@ -75,7 +75,7 @@ public final class HealthKitManager: NSObject, ObservableObject {
         let metadata: [String: Any] = [
             Self.metadataHeatActivityKey: activityType.rawValue,
             "com.heatload.activityDisplayName": activityType.displayName,
-            HKMetadataKeyWorkoutBrandName: "Sauna Log \(activityType.displayName)",
+            HKMetadataKeyWorkoutBrandName: L10n.format("health.workout_brand_name", activityType.displayName),
             HKMetadataKeyIndoorWorkout: true
         ]
 
@@ -90,7 +90,7 @@ public final class HealthKitManager: NSObject, ObservableObject {
             }
         }
 
-        builder.addMetadata(metadata) { _, _ in }
+        try? await builder.addMetadata(metadata)
     }
 
     public func recoverActiveWorkoutSession(_ session: HKWorkoutSession) {
@@ -172,7 +172,7 @@ public final class HealthKitManager: NSObject, ObservableObject {
                     continuation.resume(throwing: NSError(
                         domain: "HealthKitManager",
                         code: 2,
-                        userInfo: [NSLocalizedDescriptionKey: "Workout manager unavailable while finishing session."]
+                        userInfo: [NSLocalizedDescriptionKey: L10n.string("health.error.manager_unavailable_finishing")]
                     ))
                     return
                 }
@@ -229,7 +229,7 @@ public final class HealthKitManager: NSObject, ObservableObject {
                                 continuation.resume(throwing: NSError(
                                     domain: "HealthKitManager",
                                     code: 3,
-                                    userInfo: [NSLocalizedDescriptionKey: "Workout manager unavailable after finishing session."]
+                                    userInfo: [NSLocalizedDescriptionKey: L10n.string("health.error.manager_unavailable_after_finish")]
                                 ))
                                 return
                             }
@@ -303,10 +303,10 @@ public final class HealthKitManager: NSObject, ObservableObject {
 
     private func startLiveMetricsPolling() {
         liveMetricsPollingTask?.cancel()
-        liveMetricsPollingTask = Task { [weak self] in
+        liveMetricsPollingTask = Task { @MainActor [weak self] in
             while !Task.isCancelled {
                 try? await Task.sleep(nanoseconds: 1_000_000_000)
-                await self?.refreshLiveMetricsFromBuilder()
+                self?.refreshLiveMetricsFromBuilder()
             }
         }
     }
@@ -358,7 +358,7 @@ public final class HealthKitManager: NSObject, ObservableObject {
         return (avg, max, currentActiveCalories, currentTotalCalories)
     }
 
-    private static func isWorkoutAlreadyInactiveError(_ error: Error) -> Bool {
+    nonisolated private static func isWorkoutAlreadyInactiveError(_ error: Error) -> Bool {
         let message = (error as NSError).localizedDescription.lowercased()
         return message.contains("not currently active")
             || message.contains("not currently ended")
@@ -378,34 +378,94 @@ public final class HealthKitManager: NSObject, ObservableObject {
             Self.metadataColdShowerKey: hadColdShower,
             "com.heatload.activityDisplayName": activityType.displayName,
             "com.heatload.plannedDurationSeconds": plannedDurationSeconds,
-            HKMetadataKeyWorkoutBrandName: "Sauna Log \(activityType.displayName)",
+            HKMetadataKeyWorkoutBrandName: L10n.format("health.workout_brand_name", activityType.displayName),
             HKMetadataKeyIndoorWorkout: true
         ]
 
         let active = HKQuantity(unit: .kilocalorie(), doubleValue: currentActiveCalories)
         let total = HKQuantity(unit: .kilocalorie(), doubleValue: currentTotalCalories)
 
-        let workout = HKWorkout(
-            activityType: mappedWorkoutActivityType(for: activityType),
-            start: startDate,
-            end: endDate,
-            workoutEvents: nil,
-            totalEnergyBurned: total.doubleValue(for: .kilocalorie()) > 0 ? total : active,
-            totalDistance: nil,
-            metadata: metadata
-        )
+        let configuration = HKWorkoutConfiguration()
+        configuration.activityType = mappedWorkoutActivityType(for: activityType)
+        configuration.locationType = .indoor
 
+        let builder = HKWorkoutBuilder(healthStore: healthStore, configuration: configuration, device: .local())
+        try await beginCollection(builder, startDate: startDate)
+        try await addMetadata(metadata, to: builder)
+
+        let energy = total.doubleValue(for: .kilocalorie()) > 0 ? total : active
+        if energy.doubleValue(for: .kilocalorie()) > 0,
+           let energyType = HKObjectType.quantityType(forIdentifier: .activeEnergyBurned) {
+            let sample = HKQuantitySample(type: energyType, quantity: energy, start: startDate, end: endDate)
+            try await addSamples([sample], to: builder)
+        }
+
+        try await endCollection(builder, endDate: endDate)
+        let workout = try await finishWorkout(builder)
+        lastEndedWorkoutUUID = workout.uuid
+    }
+
+    private func beginCollection(_ builder: HKWorkoutBuilder, startDate: Date) async throws {
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-            healthStore.save(workout) { [weak self] success, error in
+            builder.beginCollection(withStart: startDate) { _, error in
                 if let error {
                     continuation.resume(throwing: error)
-                } else if success {
-                    Task { @MainActor in
-                        self?.lastEndedWorkoutUUID = workout.uuid
-                        continuation.resume(returning: ())
-                    }
                 } else {
-                    continuation.resume(throwing: NSError(domain: "HealthKitManager", code: 12, userInfo: [NSLocalizedDescriptionKey: "Unable to save fallback workout."]))
+                    continuation.resume(returning: ())
+                }
+            }
+        }
+    }
+
+    private func addMetadata(_ metadata: [String: Any], to builder: HKWorkoutBuilder) async throws {
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            builder.addMetadata(metadata) { _, error in
+                if let error {
+                    continuation.resume(throwing: error)
+                } else {
+                    continuation.resume(returning: ())
+                }
+            }
+        }
+    }
+
+    private func addSamples(_ samples: [HKSample], to builder: HKWorkoutBuilder) async throws {
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            builder.add(samples) { _, error in
+                if let error {
+                    continuation.resume(throwing: error)
+                } else {
+                    continuation.resume(returning: ())
+                }
+            }
+        }
+    }
+
+    private func endCollection(_ builder: HKWorkoutBuilder, endDate: Date) async throws {
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            builder.endCollection(withEnd: endDate) { _, error in
+                if let error {
+                    continuation.resume(throwing: error)
+                } else {
+                    continuation.resume(returning: ())
+                }
+            }
+        }
+    }
+
+    private func finishWorkout(_ builder: HKWorkoutBuilder) async throws -> HKWorkout {
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<HKWorkout, Error>) in
+            builder.finishWorkout { workout, error in
+                if let error {
+                    continuation.resume(throwing: error)
+                } else if let workout {
+                    continuation.resume(returning: workout)
+                } else {
+                    continuation.resume(throwing: NSError(
+                        domain: "HealthKitManager",
+                        code: 12,
+                        userInfo: [NSLocalizedDescriptionKey: L10n.string("health.error.fallback_save_failed")]
+                    ))
                 }
             }
         }
@@ -441,6 +501,8 @@ public final class HealthKitManager: NSObject, ObservableObject {
 
         let workoutType = HKObjectType.workoutType()
         let sortDescriptor = NSSortDescriptor(key: HKSampleSortIdentifierEndDate, ascending: false)
+        let heatActivityKey = Self.metadataHeatActivityKey
+        let coldShowerKey = Self.metadataColdShowerKey
 
         return try await withCheckedThrowingContinuation { continuation in
             let query = HKSampleQuery(
@@ -457,13 +519,13 @@ public final class HealthKitManager: NSObject, ObservableObject {
                 let workouts = (samples as? [HKWorkout]) ?? []
                 let sessions = workouts.compactMap { workout -> HeatSession? in
                     guard let metadata = workout.metadata else { return nil }
-                    guard let activityRaw = metadata[Self.metadataHeatActivityKey] as? String,
+                    guard let activityRaw = metadata[heatActivityKey] as? String,
                           let activityType = HeatActivityType(rawValue: activityRaw) else {
                         return nil
                     }
 
-                    let hadColdShower = (metadata[Self.metadataColdShowerKey] as? Bool)
-                        ?? (metadata[Self.metadataColdShowerKey] as? NSNumber)?.boolValue
+                    let hadColdShower = (metadata[coldShowerKey] as? Bool)
+                        ?? (metadata[coldShowerKey] as? NSNumber)?.boolValue
                         ?? false
 
                     let plannedDuration = (metadata["com.heatload.plannedDurationSeconds"] as? Int)
@@ -501,7 +563,7 @@ public final class HealthKitManager: NSObject, ObservableObject {
             throw NSError(
                 domain: "HealthKitManager",
                 code: 14,
-                userInfo: [NSLocalizedDescriptionKey: "Matching Apple Health/Fitness workout was not found for this session."]
+                userInfo: [NSLocalizedDescriptionKey: L10n.string("health.error.delete_match_not_found")]
             )
         }
 
@@ -518,7 +580,7 @@ public final class HealthKitManager: NSObject, ObservableObject {
         throw NSError(
             domain: "HealthKitManager",
             code: 15,
-            userInfo: [NSLocalizedDescriptionKey: "Workout still present in Apple Health after delete attempt."]
+            userInfo: [NSLocalizedDescriptionKey: L10n.string("health.error.delete_still_present")]
         )
     }
 
@@ -595,7 +657,7 @@ public final class HealthKitManager: NSObject, ObservableObject {
                 } else if success {
                     continuation.resume(returning: ())
                 } else {
-                    continuation.resume(throwing: NSError(domain: "HealthKitManager", code: 13, userInfo: [NSLocalizedDescriptionKey: "Unable to delete workout from Health."]))
+                    continuation.resume(throwing: NSError(domain: "HealthKitManager", code: 13, userInfo: [NSLocalizedDescriptionKey: L10n.string("health.error.delete_failed")]))
                 }
             }
         }

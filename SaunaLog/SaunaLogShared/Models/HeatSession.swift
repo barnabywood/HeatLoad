@@ -8,8 +8,8 @@ public enum HeatActivityType: String, CaseIterable, Codable, Identifiable {
 
     public var displayName: String {
         switch self {
-        case .sauna: return "Sauna"
-        case .steamRoom: return "Steam Room"
+        case .sauna: return L10n.string("activity.sauna")
+        case .steamRoom: return L10n.string("activity.steam_room")
         }
     }
 }

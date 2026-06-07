@@ -1,5 +1,5 @@
 import Foundation
-import UserNotifications
+@preconcurrency import UserNotifications
 
 @MainActor
 final class SaunaLogLocalNotificationManager {
@@ -22,11 +22,10 @@ final class SaunaLogLocalNotificationManager {
     }
 
     func requestAuthorizationIfNeeded() {
-        center.getNotificationSettings { [weak self] settings in
-            guard let self else { return }
+        center.getNotificationSettings { settings in
             guard settings.authorizationStatus == .notDetermined else { return }
 
-            self.center.requestAuthorization(options: [.alert, .sound, .badge]) { _, _ in }
+            UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { _, _ in }
         }
     }
 
@@ -41,19 +40,24 @@ final class SaunaLogLocalNotificationManager {
         guard !defaults.bool(forKey: Keys.hasScheduledTrialExhaustedReminder) else { return }
 
         let content = UNMutableNotificationContent()
-        content.title = "Free Trial Complete"
-        content.body = "Unlock Sauna Log for unlimited sauna and steam sessions."
+        content.title = L10n.string("notification.trial_complete.title")
+        content.body = L10n.string("notification.trial_complete.body")
         content.sound = .default
         content.interruptionLevel = .timeSensitive
 
         let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
         let request = UNNotificationRequest(identifier: reminderIdentifier, content: content, trigger: trigger)
 
-        center.add(request) { [weak self] error in
-            guard let self else { return }
+        center.add(request) { error in
             guard error == nil else { return }
-            self.defaults.set(true, forKey: Keys.hasScheduledTrialExhaustedReminder)
+            Task { @MainActor in
+                SaunaLogLocalNotificationManager.shared.markUnlockReminderScheduled()
+            }
         }
+    }
+
+    private func markUnlockReminderScheduled() {
+        defaults.set(true, forKey: Keys.hasScheduledTrialExhaustedReminder)
     }
 
     private func clearUnlockReminder() {
