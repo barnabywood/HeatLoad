@@ -754,13 +754,36 @@ struct HomeView: View {
     }
 
     private var insightScalePicker: some View {
-        Picker(L10n.string("insights.scale.picker"), selection: $selectedInsightScale) {
+        HStack(spacing: 8) {
             ForEach(InsightScale.displayOrder) { scale in
-                Text(L10n.string(scale.titleKey)).tag(scale)
+                let isSelected = selectedInsightScale == scale
+
+                Button {
+                    softTap()
+                    withAnimation(.easeInOut(duration: 0.18)) {
+                        selectedInsightScale = scale
+                    }
+                } label: {
+                    Text(L10n.string(scale.titleKey))
+                        .font(AppTheme.accentFont(13))
+                        .foregroundStyle(isSelected ? AppTheme.charcoal : .white.opacity(0.94))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.82)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 9)
+                        .background(
+                            isSelected ? AppTheme.steam : .white.opacity(0.12),
+                            in: Capsule()
+                        )
+                        .overlay(
+                            Capsule()
+                                .stroke(isSelected ? AppTheme.steam.opacity(0.95) : .white.opacity(0.28), lineWidth: 1)
+                        )
+                }
+                .buttonStyle(.plain)
             }
         }
-        .pickerStyle(.segmented)
-        .tint(AppTheme.steam)
+        .accessibilityElement(children: .contain)
         .accessibilityLabel(Text("insights.scale.picker"))
     }
 
@@ -915,11 +938,11 @@ struct HomeView: View {
         let totalDurationMinutes = sessions.reduce(0) { $0 + max(0, $1.actualDurationSeconds / 60) }
         let hrSessions = sessions.filter { $0.averageHeartRate > 0 }
         let averageHR = hrSessions.isEmpty ? 0 : Int((hrSessions.reduce(0.0) { $0 + $1.averageHeartRate } / Double(hrSessions.count)).rounded())
-        let dayCount = max(1, selectedInsightScale.elapsedDayCount)
+        let activeDayCount = max(1, Set(sessions.map { Calendar.current.startOfDay(for: $0.startDate) }).count)
 
         return InsightSummary(
             totalHeatMinutes: totalDurationMinutes,
-            heatMinutesPerDay: Int((Double(totalDurationMinutes) / Double(dayCount)).rounded()),
+            heatMinutesPerDay: Int((Double(totalDurationMinutes) / Double(activeDayCount)).rounded()),
             sessions: sessions.count,
             averageHeartRate: averageHR
         )
