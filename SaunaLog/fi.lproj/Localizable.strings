@@ -125,3 +125,17 @@
 "insights.value.no_data" = "--";
 "notification.watch_missing.title" = "Kellosovellusta ei ole asennettu";
 "notification.watch_missing.body" = "Asenna Sauna Log Apple Watchiin lämpöistuntojen tallentamista varten.";
+
+"insights.scale.picker" = "Aikaväli";
+"insights.scale.week" = "Viikko";
+"insights.scale.month" = "Kuukausi";
+"insights.scale.year" = "Vuosi";
+"insights.metric.total_heat" = "Lämpö yhteensä";
+"insights.metric.heat_per_day" = "Lämpö/päivä";
+"insights.metric.sessions" = "Istunnot";
+"insights.chart.heat_time" = "Lämpöaika / %@";
+"insights.bucket.day" = "päivä";
+"insights.bucket.week" = "viikko";
+"insights.bucket.month" = "kuukausi";
+"insights.axis.day" = "Päivä";
+"insights.axis.month" = "Kuukausi";

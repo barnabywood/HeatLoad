@@ -125,3 +125,17 @@
 "insights.value.no_data" = "--";
 "notification.watch_missing.title" = "Watchアプリ未インストール";
 "notification.watch_missing.body" = "ヒートセッションを記録するには、Apple WatchにSauna Logをインストールしてください。";
+
+"insights.scale.picker" = "期間";
+"insights.scale.week" = "週";
+"insights.scale.month" = "月";
+"insights.scale.year" = "年";
+"insights.metric.total_heat" = "合計時間";
+"insights.metric.heat_per_day" = "1日平均";
+"insights.metric.sessions" = "セッション";
+"insights.chart.heat_time" = "%@ごとのヒート時間";
+"insights.bucket.day" = "日";
+"insights.bucket.week" = "週";
+"insights.bucket.month" = "月";
+"insights.axis.day" = "日";
+"insights.axis.month" = "月";

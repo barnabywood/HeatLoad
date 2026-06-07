@@ -125,3 +125,17 @@
 "insights.value.no_data" = "--";
 "notification.watch_missing.title" = "Watch-App nicht installiert";
 "notification.watch_missing.body" = "Installiere Sauna Log auf deiner Apple Watch, um Hitze-Sitzungen aufzuzeichnen.";
+
+"insights.scale.picker" = "Zeitraum";
+"insights.scale.week" = "Woche";
+"insights.scale.month" = "Monat";
+"insights.scale.year" = "Jahr";
+"insights.metric.total_heat" = "Hitze gesamt";
+"insights.metric.heat_per_day" = "Hitze/Tag";
+"insights.metric.sessions" = "Sitzungen";
+"insights.chart.heat_time" = "Hitzezeit pro %@";
+"insights.bucket.day" = "Tag";
+"insights.bucket.week" = "Woche";
+"insights.bucket.month" = "Monat";
+"insights.axis.day" = "Tag";
+"insights.axis.month" = "Monat";

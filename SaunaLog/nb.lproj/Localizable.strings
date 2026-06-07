@@ -125,3 +125,17 @@
 "insights.value.no_data" = "--";
 "notification.watch_missing.title" = "Klokkeappen er ikke installert";
 "notification.watch_missing.body" = "Installer Sauna Log på Apple Watch for å registrere varmeøkter.";
+
+"insights.scale.picker" = "Tidsrom";
+"insights.scale.week" = "Uke";
+"insights.scale.month" = "Måned";
+"insights.scale.year" = "År";
+"insights.metric.total_heat" = "Varme totalt";
+"insights.metric.heat_per_day" = "Varme/dag";
+"insights.metric.sessions" = "Økter";
+"insights.chart.heat_time" = "Varmetid per %@";
+"insights.bucket.day" = "dag";
+"insights.bucket.week" = "uke";
+"insights.bucket.month" = "måned";
+"insights.axis.day" = "Dag";
+"insights.axis.month" = "Måned";

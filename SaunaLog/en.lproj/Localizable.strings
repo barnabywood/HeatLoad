@@ -125,3 +125,17 @@
 "insights.value.no_data" = "--";
 "notification.watch_missing.title" = "Watch App Not Installed";
 "notification.watch_missing.body" = "Install Sauna Log on your Apple Watch to record heat sessions.";
+
+"insights.scale.picker" = "Time scale";
+"insights.scale.week" = "Week";
+"insights.scale.month" = "Month";
+"insights.scale.year" = "Year";
+"insights.metric.total_heat" = "Total heat";
+"insights.metric.heat_per_day" = "Heat / day";
+"insights.metric.sessions" = "Sessions";
+"insights.chart.heat_time" = "Heat time per %@";
+"insights.bucket.day" = "day";
+"insights.bucket.week" = "week";
+"insights.bucket.month" = "month";
+"insights.axis.day" = "Day";
+"insights.axis.month" = "Month";

@@ -19,6 +19,7 @@ struct HomeView: View {
     @State private var editingMinutesInput = ""
     @State private var showingSupport = false
     @State private var showingInsights = false
+    @State private var selectedInsightScale: InsightScale = .month
     @State private var pendingDeletionSession: HeatSession?
     @State private var showingDeleteConfirmation = false
     @State private var deleteFailureMessage: String?
@@ -239,8 +240,9 @@ struct HomeView: View {
                 }
 
                 insightsHeaderPanel
+                insightScalePicker
                 insightsSummaryPanel
-                weeklyHeatChartPanel
+                heatTimeChartPanel
                 durationTrendChartPanel
                 heatMixPanel
             }
@@ -747,36 +749,47 @@ struct HomeView: View {
         .panelStyle()
     }
 
+    private var insightScalePicker: some View {
+        Picker(L10n.string("insights.scale.picker"), selection: $selectedInsightScale) {
+            ForEach(InsightScale.allCases) { scale in
+                Text(scale.titleKey).tag(scale)
+            }
+        }
+        .pickerStyle(.segmented)
+        .tint(AppTheme.steam)
+        .accessibilityLabel(Text("insights.scale.picker"))
+    }
+
     private var insightsSummaryPanel: some View {
         let summary = insightSummary
 
         return LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
-            InsightMetricCard(titleKey: "insights.metric.month_heat", value: formatMinutes(summary.monthHeatMinutes))
-            InsightMetricCard(titleKey: "insights.metric.month_sessions", value: "\(summary.monthSessions)")
-            InsightMetricCard(titleKey: "insights.metric.average_duration", value: formatMinutes(summary.averageDurationMinutes))
+            InsightMetricCard(titleKey: "insights.metric.total_heat", value: formatMinutes(summary.totalHeatMinutes))
+            InsightMetricCard(titleKey: "insights.metric.heat_per_day", value: formatMinutes(summary.heatMinutesPerDay))
+            InsightMetricCard(titleKey: "insights.metric.sessions", value: "\(summary.sessions)")
             InsightMetricCard(titleKey: "insights.metric.average_hr", value: summary.averageHeartRate > 0 ? L10n.format("insights.value.bpm", summary.averageHeartRate) : L10n.string("insights.value.no_data"))
         }
         .panelStyle()
     }
 
-    private var weeklyHeatChartPanel: some View {
+    private var heatTimeChartPanel: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("insights.chart.weekly_heat")
+            Text(L10n.format("insights.chart.heat_time", L10n.string(selectedInsightScale.bucketTitleKey).lowercased()))
                 .font(AppTheme.accentFont(16))
 
-            if weeklyHeatRows.isEmpty {
+            if heatTimeRows.isEmpty {
                 insightEmptyText
             } else {
-                Chart(weeklyHeatRows) { row in
+                Chart(heatTimeRows) { row in
                     BarMark(
-                        x: .value(L10n.string("insights.axis.week"), row.label),
+                        x: .value(L10n.string(selectedInsightScale.bucketAxisKey), row.label),
                         y: .value(L10n.string("insights.axis.minutes"), row.minutes)
                     )
                     .foregroundStyle(AppTheme.steam.gradient)
                     .cornerRadius(5)
                 }
                 .chartYAxis {
-                    AxisMarks(position: .leading) { value in
+                    AxisMarks(position: .leading) { _ in
                         AxisGridLine().foregroundStyle(.white.opacity(0.12))
                         AxisValueLabel().foregroundStyle(.white.opacity(0.7))
                     }
@@ -802,15 +815,15 @@ struct HomeView: View {
             } else {
                 Chart(durationTrendRows) { row in
                     LineMark(
-                        x: .value(L10n.string("insights.axis.session"), row.index),
-                        y: .value(L10n.string("insights.axis.minutes"), row.minutes)
+                        x: .value(L10n.string(selectedInsightScale.bucketAxisKey), row.label),
+                        y: .value(L10n.string("insights.axis.minutes"), row.averageMinutes)
                     )
                     .foregroundStyle(AppTheme.ember)
                     .interpolationMethod(.catmullRom)
 
                     PointMark(
-                        x: .value(L10n.string("insights.axis.session"), row.index),
-                        y: .value(L10n.string("insights.axis.minutes"), row.minutes)
+                        x: .value(L10n.string(selectedInsightScale.bucketAxisKey), row.label),
+                        y: .value(L10n.string("insights.axis.minutes"), row.averageMinutes)
                     )
                     .foregroundStyle(AppTheme.sand)
                 }
@@ -820,7 +833,11 @@ struct HomeView: View {
                         AxisValueLabel().foregroundStyle(.white.opacity(0.7))
                     }
                 }
-                .chartXAxis(.hidden)
+                .chartXAxis {
+                    AxisMarks { _ in
+                        AxisValueLabel().foregroundStyle(.white.opacity(0.7))
+                    }
+                }
                 .frame(height: 190)
             }
         }
@@ -884,52 +901,48 @@ struct HomeView: View {
     }
 
     private var insightSessions: [HeatSession] {
-        store.recentSessions.sorted { $0.startDate < $1.startDate }
+        store.recentSessions
+            .filter { selectedInsightScale.contains($0.startDate) }
+            .sorted { $0.startDate < $1.startDate }
     }
 
     private var insightSummary: InsightSummary {
-        let calendar = Calendar.current
-        let now = Date()
-        let monthSessions = store.recentSessions.filter { calendar.isDate($0.startDate, equalTo: now, toGranularity: .month) }
-        let allSessions = store.recentSessions
-        let totalDurationMinutes = allSessions.reduce(0) { $0 + max(0, $1.actualDurationSeconds / 60) }
-        let hrSessions = allSessions.filter { $0.averageHeartRate > 0 }
+        let sessions = insightSessions
+        let totalDurationMinutes = sessions.reduce(0) { $0 + max(0, $1.actualDurationSeconds / 60) }
+        let hrSessions = sessions.filter { $0.averageHeartRate > 0 }
         let averageHR = hrSessions.isEmpty ? 0 : Int((hrSessions.reduce(0.0) { $0 + $1.averageHeartRate } / Double(hrSessions.count)).rounded())
+        let dayCount = max(1, selectedInsightScale.elapsedDayCount)
 
         return InsightSummary(
-            monthHeatMinutes: monthSessions.reduce(0) { $0 + max(0, $1.actualDurationSeconds / 60) },
-            monthSessions: monthSessions.count,
-            averageDurationMinutes: allSessions.isEmpty ? 0 : totalDurationMinutes / allSessions.count,
+            totalHeatMinutes: totalDurationMinutes,
+            heatMinutesPerDay: Int((Double(totalDurationMinutes) / Double(dayCount)).rounded()),
+            sessions: sessions.count,
             averageHeartRate: averageHR
         )
     }
 
-    private var weeklyHeatRows: [WeeklyHeatRow] {
-        let calendar = Calendar.current
-        let startOfThisWeek = calendar.dateInterval(of: .weekOfYear, for: Date())?.start ?? Date()
-        let formatter = DateFormatter()
-        formatter.setLocalizedDateFormatFromTemplate("MMM d")
-
-        return (0..<8).compactMap { offset in
-            guard let weekStart = calendar.date(byAdding: .weekOfYear, value: offset - 7, to: startOfThisWeek),
-                  let weekEnd = calendar.date(byAdding: .day, value: 7, to: weekStart) else { return nil }
+    private var heatTimeRows: [InsightBucketRow] {
+        selectedInsightScale.buckets().map { bucket in
             let minutes = store.recentSessions
-                .filter { $0.startDate >= weekStart && $0.startDate < weekEnd }
+                .filter { $0.startDate >= bucket.start && $0.startDate < bucket.end }
                 .reduce(0) { $0 + max(0, $1.actualDurationSeconds / 60) }
-            return WeeklyHeatRow(id: weekStart, label: formatter.string(from: weekStart), minutes: minutes)
+            return InsightBucketRow(id: bucket.start, label: bucket.label, minutes: minutes)
         }
     }
 
     private var durationTrendRows: [DurationTrendRow] {
-        insightSessions.suffix(14).enumerated().map { offset, session in
-            DurationTrendRow(id: session.id, index: offset + 1, minutes: max(0, session.actualDurationSeconds / 60))
+        selectedInsightScale.buckets().compactMap { bucket in
+            let sessions = store.recentSessions.filter { $0.startDate >= bucket.start && $0.startDate < bucket.end }
+            guard !sessions.isEmpty else { return nil }
+            let totalMinutes = sessions.reduce(0) { $0 + max(0, $1.actualDurationSeconds / 60) }
+            return DurationTrendRow(id: bucket.start, label: bucket.label, averageMinutes: max(1, totalMinutes / sessions.count))
         }
     }
 
     private var heatMix: HeatMix {
         HeatMix(
-            sauna: store.recentSessions.filter { $0.activityType == .sauna }.count,
-            steam: store.recentSessions.filter { $0.activityType == .steamRoom }.count
+            sauna: insightSessions.filter { $0.activityType == .sauna }.count,
+            steam: insightSessions.filter { $0.activityType == .steamRoom }.count
         )
     }
 
@@ -1036,23 +1049,119 @@ private struct InsightMetricCard: View {
     }
 }
 
+private enum InsightScale: String, CaseIterable, Identifiable {
+    case week
+    case month
+    case year
+
+    var id: String { rawValue }
+
+    var titleKey: String {
+        switch self {
+        case .week: return "insights.scale.week"
+        case .month: return "insights.scale.month"
+        case .year: return "insights.scale.year"
+        }
+    }
+
+    var bucketTitleKey: String {
+        switch self {
+        case .week: return "insights.bucket.day"
+        case .month: return "insights.bucket.week"
+        case .year: return "insights.bucket.month"
+        }
+    }
+
+    var bucketAxisKey: String {
+        switch self {
+        case .week: return "insights.axis.day"
+        case .month: return "insights.axis.week"
+        case .year: return "insights.axis.month"
+        }
+    }
+
+    var elapsedDayCount: Int {
+        let calendar = Calendar.current
+        let now = Date()
+        let start = range(containing: now).start
+        let days = calendar.dateComponents([.day], from: start, to: now).day ?? 0
+        return days + 1
+    }
+
+    func contains(_ date: Date) -> Bool {
+        range(containing: Date()).contains(date)
+    }
+
+    func range(containing date: Date) -> DateInterval {
+        let calendar = Calendar.current
+        switch self {
+        case .week:
+            return calendar.dateInterval(of: .weekOfYear, for: date) ?? DateInterval(start: date, duration: 7 * 24 * 60 * 60)
+        case .month:
+            return calendar.dateInterval(of: .month, for: date) ?? DateInterval(start: date, duration: 30 * 24 * 60 * 60)
+        case .year:
+            return calendar.dateInterval(of: .year, for: date) ?? DateInterval(start: date, duration: 365 * 24 * 60 * 60)
+        }
+    }
+
+    func buckets() -> [InsightBucket] {
+        let calendar = Calendar.current
+        let now = Date()
+        let range = range(containing: now)
+        let formatter = DateFormatter()
+
+        switch self {
+        case .week:
+            formatter.setLocalizedDateFormatFromTemplate("EEE")
+            return (0..<7).compactMap { offset in
+                guard let start = calendar.date(byAdding: .day, value: offset, to: range.start),
+                      let end = calendar.date(byAdding: .day, value: 1, to: start) else { return nil }
+                return InsightBucket(start: start, end: end, label: formatter.string(from: start))
+            }
+        case .month:
+            formatter.setLocalizedDateFormatFromTemplate("MMM d")
+            var buckets: [InsightBucket] = []
+            var start = range.start
+            while start < range.end {
+                guard let end = calendar.date(byAdding: .day, value: 7, to: start) else { break }
+                buckets.append(InsightBucket(start: start, end: min(end, range.end), label: formatter.string(from: start)))
+                start = end
+            }
+            return buckets
+        case .year:
+            formatter.setLocalizedDateFormatFromTemplate("MMM")
+            return (0..<12).compactMap { offset in
+                guard let start = calendar.date(byAdding: .month, value: offset, to: range.start),
+                      let end = calendar.date(byAdding: .month, value: 1, to: start) else { return nil }
+                return InsightBucket(start: start, end: end, label: formatter.string(from: start))
+            }
+        }
+    }
+}
+
 private struct InsightSummary {
-    let monthHeatMinutes: Int
-    let monthSessions: Int
-    let averageDurationMinutes: Int
+    let totalHeatMinutes: Int
+    let heatMinutesPerDay: Int
+    let sessions: Int
     let averageHeartRate: Int
 }
 
-private struct WeeklyHeatRow: Identifiable {
+private struct InsightBucket {
+    let start: Date
+    let end: Date
+    let label: String
+}
+
+private struct InsightBucketRow: Identifiable {
     let id: Date
     let label: String
     let minutes: Int
 }
 
 private struct DurationTrendRow: Identifiable {
-    let id: UUID
-    let index: Int
-    let minutes: Int
+    let id: Date
+    let label: String
+    let averageMinutes: Int
 }
 
 private struct HeatMix {

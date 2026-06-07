@@ -125,3 +125,17 @@
 "insights.value.no_data" = "--";
 "notification.watch_missing.title" = "Watch-app niet geïnstalleerd";
 "notification.watch_missing.body" = "Installeer Sauna Log op je Apple Watch om hittesessies te registreren.";
+
+"insights.scale.picker" = "Periode";
+"insights.scale.week" = "Week";
+"insights.scale.month" = "Maand";
+"insights.scale.year" = "Jaar";
+"insights.metric.total_heat" = "Totale hitte";
+"insights.metric.heat_per_day" = "Hitte/dag";
+"insights.metric.sessions" = "Sessies";
+"insights.chart.heat_time" = "Hittetijd per %@";
+"insights.bucket.day" = "dag";
+"insights.bucket.week" = "week";
+"insights.bucket.month" = "maand";
+"insights.axis.day" = "Dag";
+"insights.axis.month" = "Maand";
