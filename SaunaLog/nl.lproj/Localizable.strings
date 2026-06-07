@@ -139,3 +139,6 @@
 "insights.bucket.month" = "maand";
 "insights.axis.day" = "Dag";
 "insights.axis.month" = "Maand";
+
+"notification.monthly_insights.title" = "Maandinzichten klaar";
+"notification.monthly_insights.body" = "Je maandelijkse voortgangsinzichten zijn klaar. Open Sauna Log om je hitteroutine te bekijken.";

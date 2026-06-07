@@ -5,14 +5,22 @@ import Foundation
 final class SaunaLogLocalNotificationManager {
     static let shared = SaunaLogLocalNotificationManager()
 
+    static let routeNotificationName = Notification.Name("SaunaLogLocalNotificationRoute")
+
+    enum Route: String {
+        case insights
+    }
+
     private enum Keys {
         static let hasScheduledTrialExhaustedReminder = "notifications.trialExhaustedReminder.scheduled"
         static let hasScheduledWatchInstallReminder = "notifications.watchInstallReminder.scheduled"
+        static let route = "saunaLogRoute"
     }
 
     private let center = UNUserNotificationCenter.current()
     private let reminderIdentifier = "saunalog.trial.exhausted.unlock"
     private let watchInstallReminderIdentifier = "saunalog.watch.install.reminder"
+    private let monthlyInsightsIdentifierPrefix = "saunalog.monthly.insights"
     private let defaults: UserDefaults
 
     private init(defaults: UserDefaults = .standard) {
@@ -84,6 +92,35 @@ final class SaunaLogLocalNotificationManager {
         }
     }
 
+
+    func scheduleMonthlyInsightsNotifications() {
+        center.getPendingNotificationRequests { [monthlyInsightsIdentifierPrefix] requests in
+            let existingIdentifiers = Set(
+                requests
+                    .map(\.identifier)
+                    .filter { $0.hasPrefix(monthlyInsightsIdentifierPrefix) }
+            )
+
+            let scheduled = Self.monthEndNotificationDates(from: Date(), count: 12)
+            for date in scheduled {
+                let identifier = Self.monthlyInsightsIdentifier(for: date, prefix: monthlyInsightsIdentifierPrefix)
+                guard !existingIdentifiers.contains(identifier) else { continue }
+
+                let content = UNMutableNotificationContent()
+                content.title = L10n.string("notification.monthly_insights.title")
+                content.body = L10n.string("notification.monthly_insights.body")
+                content.sound = .default
+                content.interruptionLevel = .active
+                content.userInfo = [Keys.route: Route.insights.rawValue]
+
+                let components = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute], from: date)
+                let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: false)
+                let request = UNNotificationRequest(identifier: identifier, content: content, trigger: trigger)
+                UNUserNotificationCenter.current().add(request)
+            }
+        }
+    }
+
     private func markUnlockReminderScheduled() {
         defaults.set(true, forKey: Keys.hasScheduledTrialExhaustedReminder)
     }
@@ -101,6 +138,38 @@ final class SaunaLogLocalNotificationManager {
         center.removePendingNotificationRequests(withIdentifiers: [watchInstallReminderIdentifier])
         center.removeDeliveredNotifications(withIdentifiers: [watchInstallReminderIdentifier])
     }
+
+    private static func monthEndNotificationDates(from now: Date, count: Int) -> [Date] {
+        let calendar = Calendar.current
+        let currentMonthStart = calendar.dateInterval(of: .month, for: now)?.start ?? now
+        var dates: [Date] = []
+        var seenMonthKeys = Set<String>()
+        var offset = 0
+
+        while dates.count < count, offset < count + 3 {
+            defer { offset += 1 }
+
+            guard let monthStart = calendar.date(byAdding: .month, value: offset, to: currentMonthStart),
+                  let nextMonthStart = calendar.date(byAdding: .month, value: 1, to: monthStart),
+                  let lastDay = calendar.date(byAdding: .day, value: -1, to: nextMonthStart),
+                  let notificationDate = calendar.date(bySettingHour: 19, minute: 0, second: 0, of: lastDay) else {
+                continue
+            }
+            guard notificationDate > now else { continue }
+
+            let key = monthlyInsightsIdentifier(for: notificationDate, prefix: "month")
+            guard !seenMonthKeys.contains(key) else { continue }
+            seenMonthKeys.insert(key)
+            dates.append(notificationDate)
+        }
+
+        return dates
+    }
+
+    private static func monthlyInsightsIdentifier(for date: Date, prefix: String) -> String {
+        let components = Calendar.current.dateComponents([.year, .month], from: date)
+        return "\(prefix).\(components.year ?? 0).\(components.month ?? 0)"
+    }
 }
 
 private final class ForegroundNotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
@@ -112,5 +181,22 @@ private final class ForegroundNotificationDelegate: NSObject, UNUserNotification
         withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
     ) {
         completionHandler([.banner, .list, .sound])
+    }
+
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        didReceive response: UNNotificationResponse,
+        withCompletionHandler completionHandler: @escaping () -> Void
+    ) {
+        if let routeValue = response.notification.request.content.userInfo["saunaLogRoute"] as? String,
+           let route = SaunaLogLocalNotificationManager.Route(rawValue: routeValue) {
+            Task { @MainActor in
+                NotificationCenter.default.post(
+                    name: SaunaLogLocalNotificationManager.routeNotificationName,
+                    object: route
+                )
+            }
+        }
+        completionHandler()
     }
 }

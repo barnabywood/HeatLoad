@@ -139,3 +139,6 @@
 "insights.bucket.month" = "month";
 "insights.axis.day" = "Day";
 "insights.axis.month" = "Month";
+
+"notification.monthly_insights.title" = "Monthly insights complete";
+"notification.monthly_insights.body" = "Your monthly progress insights are ready. Open Sauna Log to review your heat practice.";

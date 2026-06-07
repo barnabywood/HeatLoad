@@ -139,3 +139,6 @@
 "insights.bucket.month" = "kuukausi";
 "insights.axis.day" = "Päivä";
 "insights.axis.month" = "Kuukausi";
+
+"notification.monthly_insights.title" = "Kuukauden näkymät valmiina";
+"notification.monthly_insights.body" = "Kuukauden edistymisnäkymät ovat valmiit. Avaa Sauna Log ja tarkista lämpörutiinisi.";

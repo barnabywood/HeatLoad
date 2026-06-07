@@ -93,6 +93,10 @@ struct HomeView: View {
         .onChange(of: watchSync.isWatchAppInstalled) { _, _ in
             scheduleWatchInstallReminderIfNeeded()
         }
+        .onReceive(NotificationCenter.default.publisher(for: SaunaLogLocalNotificationManager.routeNotificationName)) { notification in
+            guard let route = notification.object as? SaunaLogLocalNotificationManager.Route else { return }
+            handleNotificationRoute(route)
+        }
         .alert(L10n.string("timer.edit.alert_title"), isPresented: Binding(
             get: { editingPresetIndex != nil },
             set: { isPresented in
@@ -951,6 +955,17 @@ struct HomeView: View {
             return L10n.format("insights.value.hours_minutes", minutes / 60, minutes % 60)
         }
         return L10n.format("insights.value.minutes", minutes)
+    }
+
+    private func handleNotificationRoute(_ route: SaunaLogLocalNotificationManager.Route) {
+        switch route {
+        case .insights:
+            selectedInsightScale = .month
+            withAnimation(.easeInOut(duration: 0.2)) {
+                showingSupport = false
+                showingInsights = true
+            }
+        }
     }
 
     private func beginEditingPreset(index: Int) {

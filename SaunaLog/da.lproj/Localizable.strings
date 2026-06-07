@@ -139,3 +139,6 @@
 "insights.bucket.month" = "måned";
 "insights.axis.day" = "Dag";
 "insights.axis.month" = "Måned";
+
+"notification.monthly_insights.title" = "Månedens indsigt er klar";
+"notification.monthly_insights.body" = "Dine månedlige fremskridtsindsigter er klar. Åbn Sauna Log og se din varmerutine.";

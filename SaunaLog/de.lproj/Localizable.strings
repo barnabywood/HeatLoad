@@ -139,3 +139,6 @@
 "insights.bucket.month" = "Monat";
 "insights.axis.day" = "Tag";
 "insights.axis.month" = "Monat";
+
+"notification.monthly_insights.title" = "Monatliche Einblicke fertig";
+"notification.monthly_insights.body" = "Deine monatlichen Fortschritts-Einblicke sind bereit. Öffne Sauna Log, um deine Hitzeroutine anzusehen.";

@@ -139,3 +139,6 @@
 "insights.bucket.month" = "月";
 "insights.axis.day" = "日";
 "insights.axis.month" = "月";
+
+"notification.monthly_insights.title" = "月間分析が完了しました";
+"notification.monthly_insights.body" = "月間の進捗分析を確認できます。Sauna Logを開いてヒート習慣を見直しましょう。";

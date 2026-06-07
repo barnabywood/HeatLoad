@@ -21,6 +21,7 @@ struct SaunaLogiOSApp: App {
             sessionsCompleted: trial.sessionsCompleted,
             hasUnlocked: trial.hasUnlocked
         )
+        SaunaLogLocalNotificationManager.shared.scheduleMonthlyInsightsNotifications()
     }
 
     var body: some Scene {
@@ -79,6 +80,7 @@ struct SaunaLogiOSApp: App {
             }
             .onChange(of: scenePhase) { _, phase in
                 guard phase == .active else { return }
+                SaunaLogLocalNotificationManager.shared.scheduleMonthlyInsightsNotifications()
                 WatchSyncManager.shared.activate()
                 Task {
                     await purchase.refreshEntitlements()
