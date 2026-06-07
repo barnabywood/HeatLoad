@@ -751,8 +751,8 @@ struct HomeView: View {
 
     private var insightScalePicker: some View {
         Picker(L10n.string("insights.scale.picker"), selection: $selectedInsightScale) {
-            ForEach(InsightScale.allCases) { scale in
-                Text(scale.titleKey).tag(scale)
+            ForEach(InsightScale.displayOrder) { scale in
+                Text(L10n.string(scale.titleKey)).tag(scale)
             }
         }
         .pickerStyle(.segmented)
@@ -1053,6 +1053,8 @@ private enum InsightScale: String, CaseIterable, Identifiable {
     case week
     case month
     case year
+
+    static let displayOrder: [InsightScale] = [.week, .month, .year]
 
     var id: String { rawValue }
 
