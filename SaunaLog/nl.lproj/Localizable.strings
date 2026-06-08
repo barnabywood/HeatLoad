@@ -142,3 +142,13 @@
 
 "notification.monthly_insights.title" = "Maandinzichten klaar";
 "notification.monthly_insights.body" = "Je maandelijkse voortgangsinzichten zijn klaar. Open Sauna Log om je hitteroutine te bekijken.";
+
+"insights.window.swipe_hint" = "Veeg of gebruik pijlen voor periode";
+"insights.window.this_week" = "Deze week";
+"insights.window.last_week" = "Vorige week";
+"insights.window.weeks_ago" = "%d weken geleden";
+"insights.window.this_month" = "Deze maand";
+"insights.window.last_month" = "Vorige maand";
+"insights.window.months_ago" = "%d maanden geleden";
+"insights.window.this_year" = "Dit jaar";
+"insights.window.last_year" = "Vorig jaar";

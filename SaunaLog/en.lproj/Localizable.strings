@@ -142,3 +142,13 @@
 
 "notification.monthly_insights.title" = "Monthly insights complete";
 "notification.monthly_insights.body" = "Your monthly progress insights are ready. Open Sauna Log to review your heat practice.";
+
+"insights.window.swipe_hint" = "Swipe or use arrows to change timeframe";
+"insights.window.this_week" = "This week";
+"insights.window.last_week" = "Last week";
+"insights.window.weeks_ago" = "%d weeks ago";
+"insights.window.this_month" = "This month";
+"insights.window.last_month" = "Last month";
+"insights.window.months_ago" = "%d months ago";
+"insights.window.this_year" = "This year";
+"insights.window.last_year" = "Last year";

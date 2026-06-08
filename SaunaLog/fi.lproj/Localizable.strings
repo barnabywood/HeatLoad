@@ -142,3 +142,13 @@
 
 "notification.monthly_insights.title" = "Kuukauden näkymät valmiina";
 "notification.monthly_insights.body" = "Kuukauden edistymisnäkymät ovat valmiit. Avaa Sauna Log ja tarkista lämpörutiinisi.";
+
+"insights.window.swipe_hint" = "Vaihda aikaväli pyyhkäisemällä tai nuolilla";
+"insights.window.this_week" = "Tämä viikko";
+"insights.window.last_week" = "Viime viikko";
+"insights.window.weeks_ago" = "%d viikkoa sitten";
+"insights.window.this_month" = "Tämä kuukausi";
+"insights.window.last_month" = "Viime kuukausi";
+"insights.window.months_ago" = "%d kuukautta sitten";
+"insights.window.this_year" = "Tämä vuosi";
+"insights.window.last_year" = "Viime vuosi";

@@ -20,6 +20,7 @@ struct HomeView: View {
     @State private var showingSupport = false
     @State private var showingInsights = false
     @State private var selectedInsightScale: InsightScale = .month
+    @State private var selectedInsightOffset = 0
     @State private var pendingDeletionSession: HeatSession?
     @State private var showingDeleteConfirmation = false
     @State private var deleteFailureMessage: String?
@@ -762,6 +763,7 @@ struct HomeView: View {
                     softTap()
                     withAnimation(.easeInOut(duration: 0.18)) {
                         selectedInsightScale = scale
+                        selectedInsightOffset = 0
                     }
                 } label: {
                     Text(L10n.string(scale.titleKey))
@@ -801,8 +803,20 @@ struct HomeView: View {
 
     private var heatTimeChartPanel: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text(L10n.format("insights.chart.heat_time", L10n.string(selectedInsightScale.bucketTitleKey).lowercased()))
-                .font(AppTheme.accentFont(16))
+            HStack(alignment: .center, spacing: 8) {
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(L10n.format("insights.chart.heat_time", L10n.string(selectedInsightScale.bucketTitleKey).lowercased()))
+                        .font(AppTheme.accentFont(16))
+
+                    Text("insights.window.swipe_hint")
+                        .font(AppTheme.bodyFont(11))
+                        .foregroundStyle(.white.opacity(0.68))
+                }
+
+                Spacer(minLength: 8)
+
+                insightWindowControls
+            }
 
             if heatTimeRows.isEmpty {
                 insightEmptyText
@@ -829,7 +843,58 @@ struct HomeView: View {
                 .frame(height: 190)
             }
         }
+        .contentShape(Rectangle())
+        .gesture(
+            DragGesture(minimumDistance: 24)
+                .onEnded { value in
+                    guard abs(value.translation.width) > abs(value.translation.height) else { return }
+                    if value.translation.width < -30 {
+                        moveInsightWindow(.older)
+                    } else if value.translation.width > 30 {
+                        moveInsightWindow(.newer)
+                    }
+                }
+        )
         .panelStyle()
+    }
+
+    private var insightWindowControls: some View {
+        HStack(spacing: 5) {
+            Button {
+                moveInsightWindow(.older)
+            } label: {
+                Image(systemName: "chevron.left")
+                    .font(AppTheme.accentFont(11))
+                    .frame(width: 24, height: 28)
+                    .background(canMoveInsightWindow(.older) ? .white.opacity(0.12) : .white.opacity(0.04), in: Circle())
+            }
+            .disabled(!canMoveInsightWindow(.older))
+            .foregroundStyle(canMoveInsightWindow(.older) ? .white : .white.opacity(0.35))
+            .buttonStyle(.plain)
+
+            Text(insightWindowLabel)
+                .font(AppTheme.accentFont(12))
+                .foregroundStyle(AppTheme.charcoal)
+                .lineLimit(1)
+                .minimumScaleFactor(0.72)
+                .padding(.horizontal, 9)
+                .padding(.vertical, 7)
+                .background(AppTheme.steam, in: Capsule())
+
+            Button {
+                moveInsightWindow(.newer)
+            } label: {
+                Image(systemName: "chevron.right")
+                    .font(AppTheme.accentFont(11))
+                    .frame(width: 24, height: 28)
+                    .background(canMoveInsightWindow(.newer) ? .white.opacity(0.12) : .white.opacity(0.04), in: Circle())
+            }
+            .disabled(!canMoveInsightWindow(.newer))
+            .foregroundStyle(canMoveInsightWindow(.newer) ? .white : .white.opacity(0.35))
+            .buttonStyle(.plain)
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(Text(insightWindowLabel))
     }
 
     private var durationTrendChartPanel: some View {
@@ -927,9 +992,18 @@ struct HomeView: View {
         }
     }
 
+    private var insightDateRange: DateInterval {
+        selectedInsightScale.range(offset: selectedInsightOffset)
+    }
+
+    private var insightWindowLabel: String {
+        selectedInsightScale.windowLabel(for: selectedInsightOffset)
+    }
+
     private var insightSessions: [HeatSession] {
-        store.recentSessions
-            .filter { selectedInsightScale.contains($0.startDate) }
+        let range = insightDateRange
+        return store.recentSessions
+            .filter { $0.startDate >= range.start && $0.startDate < range.end }
             .sorted { $0.startDate < $1.startDate }
     }
 
@@ -949,7 +1023,7 @@ struct HomeView: View {
     }
 
     private var heatTimeRows: [InsightBucketRow] {
-        selectedInsightScale.buckets().map { bucket in
+        selectedInsightScale.buckets(in: insightDateRange).map { bucket in
             let minutes = store.recentSessions
                 .filter { $0.startDate >= bucket.start && $0.startDate < bucket.end }
                 .reduce(0) { $0 + max(0, $1.actualDurationSeconds / 60) }
@@ -958,7 +1032,7 @@ struct HomeView: View {
     }
 
     private var durationTrendRows: [DurationTrendRow] {
-        selectedInsightScale.buckets().compactMap { bucket in
+        selectedInsightScale.buckets(in: insightDateRange).compactMap { bucket in
             let sessions = store.recentSessions.filter { $0.startDate >= bucket.start && $0.startDate < bucket.end }
             guard !sessions.isEmpty else { return nil }
             let totalMinutes = sessions.reduce(0) { $0 + max(0, $1.actualDurationSeconds / 60) }
@@ -971,6 +1045,29 @@ struct HomeView: View {
             sauna: insightSessions.filter { $0.activityType == .sauna }.count,
             steam: insightSessions.filter { $0.activityType == .steamRoom }.count
         )
+    }
+
+    private func canMoveInsightWindow(_ direction: InsightWindowDirection) -> Bool {
+        switch direction {
+        case .older:
+            return selectedInsightOffset > selectedInsightScale.minimumOffset
+        case .newer:
+            return selectedInsightOffset < 0
+        }
+    }
+
+    private func moveInsightWindow(_ direction: InsightWindowDirection) {
+        guard canMoveInsightWindow(direction) else { return }
+
+        softTap()
+        withAnimation(.easeInOut(duration: 0.18)) {
+            switch direction {
+            case .older:
+                selectedInsightOffset -= 1
+            case .newer:
+                selectedInsightOffset += 1
+            }
+        }
     }
 
     private func formatMinutes(_ minutes: Int) -> String {
@@ -1120,16 +1217,12 @@ private enum InsightScale: String, CaseIterable, Identifiable {
         }
     }
 
-    var elapsedDayCount: Int {
-        let calendar = Calendar.current
-        let now = Date()
-        let start = range(containing: now).start
-        let days = calendar.dateComponents([.day], from: start, to: now).day ?? 0
-        return days + 1
-    }
-
-    func contains(_ date: Date) -> Bool {
-        range(containing: Date()).contains(date)
+    var minimumOffset: Int {
+        switch self {
+        case .week: return -3
+        case .month: return -2
+        case .year: return -1
+        }
     }
 
     func range(containing date: Date) -> DateInterval {
@@ -1144,10 +1237,41 @@ private enum InsightScale: String, CaseIterable, Identifiable {
         }
     }
 
-    func buckets() -> [InsightBucket] {
+    func range(offset: Int) -> DateInterval {
         let calendar = Calendar.current
-        let now = Date()
-        let range = range(containing: now)
+        let component: Calendar.Component
+
+        switch self {
+        case .week:
+            component = .weekOfYear
+        case .month:
+            component = .month
+        case .year:
+            component = .year
+        }
+
+        let clampedOffset = min(0, max(minimumOffset, offset))
+        let shiftedDate = calendar.date(byAdding: component, value: clampedOffset, to: Date()) ?? Date()
+        return range(containing: shiftedDate)
+    }
+
+    func windowLabel(for offset: Int) -> String {
+        switch self {
+        case .week:
+            if offset == 0 { return L10n.string("insights.window.this_week") }
+            if offset == -1 { return L10n.string("insights.window.last_week") }
+            return L10n.format("insights.window.weeks_ago", abs(offset))
+        case .month:
+            if offset == 0 { return L10n.string("insights.window.this_month") }
+            if offset == -1 { return L10n.string("insights.window.last_month") }
+            return L10n.format("insights.window.months_ago", abs(offset))
+        case .year:
+            return offset == 0 ? L10n.string("insights.window.this_year") : L10n.string("insights.window.last_year")
+        }
+    }
+
+    func buckets(in range: DateInterval) -> [InsightBucket] {
+        let calendar = Calendar.current
         let formatter = DateFormatter()
 
         switch self {
@@ -1177,6 +1301,11 @@ private enum InsightScale: String, CaseIterable, Identifiable {
             }
         }
     }
+}
+
+private enum InsightWindowDirection {
+    case older
+    case newer
 }
 
 private struct InsightSummary {

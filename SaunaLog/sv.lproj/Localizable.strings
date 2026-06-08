@@ -142,3 +142,13 @@
 
 "notification.monthly_insights.title" = "Månadens insikter klara";
 "notification.monthly_insights.body" = "Dina månadsinsikter är redo. Öppna Sauna Log och se din värmerutin.";
+
+"insights.window.swipe_hint" = "Svep eller använd pilar för tidsperiod";
+"insights.window.this_week" = "Denna vecka";
+"insights.window.last_week" = "Förra veckan";
+"insights.window.weeks_ago" = "%d veckor sedan";
+"insights.window.this_month" = "Denna månad";
+"insights.window.last_month" = "Förra månaden";
+"insights.window.months_ago" = "%d månader sedan";
+"insights.window.this_year" = "Detta år";
+"insights.window.last_year" = "Förra året";

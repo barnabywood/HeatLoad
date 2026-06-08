@@ -142,3 +142,13 @@
 
 "notification.monthly_insights.title" = "Månedens innsikt er klar";
 "notification.monthly_insights.body" = "Månedens fremgangsinnsikt er klar. Åpne Sauna Log for å se varmerutinen din.";
+
+"insights.window.swipe_hint" = "Sveip eller bruk piler for tidsrom";
+"insights.window.this_week" = "Denne uken";
+"insights.window.last_week" = "Forrige uke";
+"insights.window.weeks_ago" = "%d uker siden";
+"insights.window.this_month" = "Denne måneden";
+"insights.window.last_month" = "Forrige måned";
+"insights.window.months_ago" = "%d måneder siden";
+"insights.window.this_year" = "I år";
+"insights.window.last_year" = "I fjor";

@@ -142,3 +142,13 @@
 
 "notification.monthly_insights.title" = "月間分析が完了しました";
 "notification.monthly_insights.body" = "月間の進捗分析を確認できます。Sauna Logを開いてヒート習慣を見直しましょう。";
+
+"insights.window.swipe_hint" = "スワイプまたは矢印で期間を変更";
+"insights.window.this_week" = "今週";
+"insights.window.last_week" = "先週";
+"insights.window.weeks_ago" = "%d週間前";
+"insights.window.this_month" = "今月";
+"insights.window.last_month" = "先月";
+"insights.window.months_ago" = "%dか月前";
+"insights.window.this_year" = "今年";
+"insights.window.last_year" = "昨年";

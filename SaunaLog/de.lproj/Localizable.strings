@@ -142,3 +142,13 @@
 
 "notification.monthly_insights.title" = "Monatliche Einblicke fertig";
 "notification.monthly_insights.body" = "Deine monatlichen Fortschritts-Einblicke sind bereit. Öffne Sauna Log, um deine Hitzeroutine anzusehen.";
+
+"insights.window.swipe_hint" = "Wischen oder Pfeile nutzen";
+"insights.window.this_week" = "Diese Woche";
+"insights.window.last_week" = "Letzte Woche";
+"insights.window.weeks_ago" = "Vor %d Wochen";
+"insights.window.this_month" = "Dieser Monat";
+"insights.window.last_month" = "Letzter Monat";
+"insights.window.months_ago" = "Vor %d Monaten";
+"insights.window.this_year" = "Dieses Jahr";
+"insights.window.last_year" = "Letztes Jahr";
