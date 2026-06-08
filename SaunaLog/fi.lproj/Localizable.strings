@@ -131,7 +131,7 @@
 "insights.scale.month" = "Kuukausi";
 "insights.scale.year" = "Vuosi";
 "insights.metric.total_heat" = "Lämpö yhteensä";
-"insights.metric.heat_per_day" = "Lämpö/päivä";
+"insights.metric.heat_per_day" = "Lämpö/aktiivipäivä";
 "insights.metric.sessions" = "Istunnot";
 "insights.chart.heat_time" = "Lämpöaika / %@";
 "insights.bucket.day" = "päivä";

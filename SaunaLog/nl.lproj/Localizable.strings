@@ -131,7 +131,7 @@
 "insights.scale.month" = "Maand";
 "insights.scale.year" = "Jaar";
 "insights.metric.total_heat" = "Totale hitte";
-"insights.metric.heat_per_day" = "Hitte/dag";
+"insights.metric.heat_per_day" = "Hitte/actieve dag";
 "insights.metric.sessions" = "Sessies";
 "insights.chart.heat_time" = "Hittetijd per %@";
 "insights.bucket.day" = "dag";

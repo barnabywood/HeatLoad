@@ -131,7 +131,7 @@
 "insights.scale.month" = "Month";
 "insights.scale.year" = "Year";
 "insights.metric.total_heat" = "Total heat";
-"insights.metric.heat_per_day" = "Heat / day";
+"insights.metric.heat_per_day" = "Heat / active day";
 "insights.metric.sessions" = "Sessions";
 "insights.chart.heat_time" = "Heat time per %@";
 "insights.bucket.day" = "day";

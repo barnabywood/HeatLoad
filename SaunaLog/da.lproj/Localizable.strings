@@ -131,7 +131,7 @@
 "insights.scale.month" = "Måned";
 "insights.scale.year" = "År";
 "insights.metric.total_heat" = "Varme i alt";
-"insights.metric.heat_per_day" = "Varme/dag";
+"insights.metric.heat_per_day" = "Varme/aktiv dag";
 "insights.metric.sessions" = "Sessioner";
 "insights.chart.heat_time" = "Varmetid pr. %@";
 "insights.bucket.day" = "dag";

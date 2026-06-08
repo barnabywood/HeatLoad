@@ -131,7 +131,7 @@
 "insights.scale.month" = "月";
 "insights.scale.year" = "年";
 "insights.metric.total_heat" = "合計時間";
-"insights.metric.heat_per_day" = "1日平均";
+"insights.metric.heat_per_day" = "利用日平均";
 "insights.metric.sessions" = "セッション";
 "insights.chart.heat_time" = "%@ごとのヒート時間";
 "insights.bucket.day" = "日";

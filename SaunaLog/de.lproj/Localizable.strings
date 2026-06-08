@@ -131,7 +131,7 @@
 "insights.scale.month" = "Monat";
 "insights.scale.year" = "Jahr";
 "insights.metric.total_heat" = "Hitze gesamt";
-"insights.metric.heat_per_day" = "Hitze/Tag";
+"insights.metric.heat_per_day" = "Hitze/aktivem Tag";
 "insights.metric.sessions" = "Sitzungen";
 "insights.chart.heat_time" = "Hitzezeit pro %@";
 "insights.bucket.day" = "Tag";
