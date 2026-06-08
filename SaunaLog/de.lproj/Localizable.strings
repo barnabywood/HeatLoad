@@ -152,3 +152,6 @@
 "insights.window.months_ago" = "Vor %d Monaten";
 "insights.window.this_year" = "Dieses Jahr";
 "insights.window.last_year" = "Letztes Jahr";
+
+"settings.monthly_insights_notifications.title" = "Monatliche Einblicke";
+"settings.monthly_insights_notifications.subtitle" = "Benachrichtige mich, wenn Monats-Einblicke bereit sind.";

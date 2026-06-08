@@ -152,3 +152,6 @@
 "insights.window.months_ago" = "%d months ago";
 "insights.window.this_year" = "This year";
 "insights.window.last_year" = "Last year";
+
+"settings.monthly_insights_notifications.title" = "Monthly insight reminders";
+"settings.monthly_insights_notifications.subtitle" = "Notify me when monthly progress insights are ready.";

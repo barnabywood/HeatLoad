@@ -152,3 +152,6 @@
 "insights.window.months_ago" = "%dか月前";
 "insights.window.this_year" = "今年";
 "insights.window.last_year" = "昨年";
+
+"settings.monthly_insights_notifications.title" = "月間分析通知";
+"settings.monthly_insights_notifications.subtitle" = "月間分析が準備できたら通知します。";

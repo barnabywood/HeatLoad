@@ -14,7 +14,14 @@ final class SaunaLogLocalNotificationManager {
     private enum Keys {
         static let hasScheduledTrialExhaustedReminder = "notifications.trialExhaustedReminder.scheduled"
         static let hasScheduledWatchInstallReminder = "notifications.watchInstallReminder.scheduled"
+        static let monthlyInsightsEnabled = "notifications.monthlyInsights.enabled"
         static let route = "saunaLogRoute"
+    }
+
+    static let monthlyInsightsEnabledKey = Keys.monthlyInsightsEnabled
+
+    static var areMonthlyInsightsEnabledByDefault: Bool {
+        UserDefaults.standard.object(forKey: monthlyInsightsEnabledKey) as? Bool ?? true
     }
 
     private let center = UNUserNotificationCenter.current()
@@ -94,6 +101,15 @@ final class SaunaLogLocalNotificationManager {
 
 
     func scheduleMonthlyInsightsNotifications() {
+        scheduleMonthlyInsightsNotifications(isEnabled: Self.areMonthlyInsightsEnabledByDefault)
+    }
+
+    func scheduleMonthlyInsightsNotifications(isEnabled: Bool) {
+        guard isEnabled else {
+            clearMonthlyInsightsNotifications()
+            return
+        }
+
         center.getPendingNotificationRequests { [monthlyInsightsIdentifierPrefix] requests in
             let existingIdentifiers = Set(
                 requests
@@ -139,7 +155,25 @@ final class SaunaLogLocalNotificationManager {
         center.removeDeliveredNotifications(withIdentifiers: [watchInstallReminderIdentifier])
     }
 
-    private static func monthEndNotificationDates(from now: Date, count: Int) -> [Date] {
+    private func clearMonthlyInsightsNotifications() {
+        center.getPendingNotificationRequests { [monthlyInsightsIdentifierPrefix] requests in
+            let identifiers = requests
+                .map(\.identifier)
+                .filter { $0.hasPrefix(monthlyInsightsIdentifierPrefix) }
+            guard !identifiers.isEmpty else { return }
+            UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: identifiers)
+        }
+
+        center.getDeliveredNotifications { [monthlyInsightsIdentifierPrefix] notifications in
+            let identifiers = notifications
+                .map { $0.request.identifier }
+                .filter { $0.hasPrefix(monthlyInsightsIdentifierPrefix) }
+            guard !identifiers.isEmpty else { return }
+            UNUserNotificationCenter.current().removeDeliveredNotifications(withIdentifiers: identifiers)
+        }
+    }
+
+    nonisolated private static func monthEndNotificationDates(from now: Date, count: Int) -> [Date] {
         let calendar = Calendar.current
         let currentMonthStart = calendar.dateInterval(of: .month, for: now)?.start ?? now
         var dates: [Date] = []
@@ -166,7 +200,7 @@ final class SaunaLogLocalNotificationManager {
         return dates
     }
 
-    private static func monthlyInsightsIdentifier(for date: Date, prefix: String) -> String {
+    nonisolated private static func monthlyInsightsIdentifier(for date: Date, prefix: String) -> String {
         let components = Calendar.current.dateComponents([.year, .month], from: date)
         return "\(prefix).\(components.year ?? 0).\(components.month ?? 0)"
     }

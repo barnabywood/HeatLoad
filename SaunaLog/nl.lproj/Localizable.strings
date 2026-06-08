@@ -152,3 +152,6 @@
 "insights.window.months_ago" = "%d maanden geleden";
 "insights.window.this_year" = "Dit jaar";
 "insights.window.last_year" = "Vorig jaar";
+
+"settings.monthly_insights_notifications.title" = "Maandelijkse inzichten";
+"settings.monthly_insights_notifications.subtitle" = "Meld wanneer maandinzichten klaar zijn.";

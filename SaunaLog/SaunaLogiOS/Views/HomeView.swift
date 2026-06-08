@@ -26,6 +26,7 @@ struct HomeView: View {
     @State private var deleteFailureMessage: String?
     @State private var hasCountedLaunch = false
     @AppStorage("ios.launchCount") private var launchCount = 0
+    @AppStorage(SaunaLogLocalNotificationManager.monthlyInsightsEnabledKey) private var monthlyInsightsNotificationsEnabled = true
 
     private let appReviewURL = URL(string: "itms-apps://itunes.apple.com/app/viewContentsUserReviews/id6759159351?action=write-review")!
 
@@ -583,6 +584,8 @@ struct HomeView: View {
             Text("support.section_title")
                 .font(AppTheme.accentFont(16))
 
+            monthlyInsightsNotificationToggle
+
             LinkRow(titleKey: "support.privacy_policy", subtitleKey: "support.view", destination: privacyPolicyURL)
             LinkRow(titleKey: "support.contact_feedback", subtitle: "app.inventory.me@gmail.com", destination: contactURL)
             LinkRow(titleKey: "support.request_feature", subtitleKey: "support.send_idea", destination: featureRequestURL)
@@ -646,6 +649,29 @@ struct HomeView: View {
                 .padding(.top, 4)
         }
         .panelStyle()
+    }
+
+    private var monthlyInsightsNotificationToggle: some View {
+        Toggle(isOn: $monthlyInsightsNotificationsEnabled) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("settings.monthly_insights_notifications.title")
+                    .font(AppTheme.accentFont(14))
+                    .foregroundStyle(.white)
+                    .fixedSize(horizontal: false, vertical: true)
+                Text("settings.monthly_insights_notifications.subtitle")
+                    .font(AppTheme.bodyFont(12))
+                    .foregroundStyle(.white.opacity(0.76))
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .toggleStyle(.switch)
+        .tint(AppTheme.steam)
+        .padding(10)
+        .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .onChange(of: monthlyInsightsNotificationsEnabled) { _, isEnabled in
+            softTap()
+            SaunaLogLocalNotificationManager.shared.scheduleMonthlyInsightsNotifications(isEnabled: isEnabled)
+        }
     }
 
     private var sessionsPanel: some View {

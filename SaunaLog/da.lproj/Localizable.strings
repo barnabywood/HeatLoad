@@ -152,3 +152,6 @@
 "insights.window.months_ago" = "For %d måneder siden";
 "insights.window.this_year" = "I år";
 "insights.window.last_year" = "Sidste år";
+
+"settings.monthly_insights_notifications.title" = "Månedlig indsigt";
+"settings.monthly_insights_notifications.subtitle" = "Giv besked, når månedens indsigt er klar.";
