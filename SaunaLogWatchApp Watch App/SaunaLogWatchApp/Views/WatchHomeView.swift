@@ -158,6 +158,8 @@ struct WatchHomeView: View {
                         .minimumScaleFactor(0.7)
                 }
 
+                guidancePanel
+
                 compactPanel {
                     metricRow("metric.heart_rate.short", value: heartRateText)
                     metricRow("metric.active_calories", value: String(Int(health.currentActiveCalories.rounded())))
@@ -203,6 +205,58 @@ struct WatchHomeView: View {
             return "\(Int(bpm))"
         }
         return "--"
+    }
+
+    private var guidancePanel: some View {
+        let guidance = currentGuidance
+
+        return compactPanel {
+            HStack(spacing: 8) {
+                Circle()
+                    .fill(guidance.color)
+                    .frame(width: 10, height: 10)
+
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(L10n.string(guidance.titleKey))
+                        .font(AppTheme.accentFont(17))
+                        .foregroundStyle(.white)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.78)
+
+                    Text(L10n.string(guidance.detailKey))
+                        .font(AppTheme.bodyFont(12))
+                        .foregroundStyle(.white.opacity(0.82))
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.78)
+                }
+
+                Spacer(minLength: 2)
+            }
+        }
+    }
+
+    private var currentGuidance: WatchGuidance {
+        let planned = max(60, store.currentPlannedDurationSeconds)
+        let elapsed = max(0, planned - store.countdownRemainingSeconds)
+        let progress = Double(elapsed) / Double(planned)
+
+        guard let bpm = health.currentHeartRate else {
+            return .warmingUp
+        }
+
+        if let maxBPM = store.maxHeartRateAlertBPM, Int(bpm.rounded()) >= maxBPM {
+            return .highStrain
+        }
+
+        if progress >= 0.85 {
+            return .coolDownSoon
+        }
+
+        if progress < 0.2 {
+            return .settlingIn
+        }
+
+        return .steady
     }
 
     private func activityButton(_ type: HeatActivityType, symbol: String, subtitleKey: String, isPrimary: Bool) -> some View {
@@ -605,6 +659,44 @@ private struct SlideToConfirm: View {
                 knobOffset = 0
             }
             didConfirm = false
+        }
+    }
+}
+
+
+private enum WatchGuidance {
+    case warmingUp
+    case settlingIn
+    case steady
+    case highStrain
+    case coolDownSoon
+
+    var titleKey: String {
+        switch self {
+        case .warmingUp: return "guidance.warming_up.title"
+        case .settlingIn: return "guidance.settling_in.title"
+        case .steady: return "guidance.steady.title"
+        case .highStrain: return "guidance.high_strain.title"
+        case .coolDownSoon: return "guidance.cool_down_soon.title"
+        }
+    }
+
+    var detailKey: String {
+        switch self {
+        case .warmingUp: return "guidance.warming_up.detail"
+        case .settlingIn: return "guidance.settling_in.detail"
+        case .steady: return "guidance.steady.detail"
+        case .highStrain: return "guidance.high_strain.detail"
+        case .coolDownSoon: return "guidance.cool_down_soon.detail"
+        }
+    }
+
+    var color: Color {
+        switch self {
+        case .warmingUp, .settlingIn: return AppTheme.sand
+        case .steady: return AppTheme.steam
+        case .highStrain: return AppTheme.ember
+        case .coolDownSoon: return Color.yellow.opacity(0.95)
         }
     }
 }

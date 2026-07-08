@@ -125,3 +125,14 @@
 "insights.value.no_data" = "--";
 "notification.watch_missing.title" = "Kellosovellusta ei ole asennettu";
 "notification.watch_missing.body" = "Asenna Sauna Log Apple Watchiin lämpöistuntojen tallentamista varten.";
+
+"guidance.warming_up.title" = "Lämmittely";
+"guidance.warming_up.detail" = "Odotetaan sykettä.";
+"guidance.settling_in.title" = "Asettumassa";
+"guidance.settling_in.detail" = "Anna lämmön nousta tasaisesti.";
+"guidance.steady.title" = "Tasainen";
+"guidance.steady.detail" = "Hengitä rauhallisesti.";
+"guidance.high_strain.title" = "Kova rasitus";
+"guidance.high_strain.detail" = "Harkitse poistumista lämmöstä.";
+"guidance.cool_down_soon.title" = "Jäähdyttele pian";
+"guidance.cool_down_soon.detail" = "Sessio on lähes valmis.";

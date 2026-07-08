@@ -823,6 +823,7 @@ struct HomeView: View {
             InsightMetricCard(titleKey: "insights.metric.heat_per_day", value: formatMinutes(summary.heatMinutesPerDay))
             InsightMetricCard(titleKey: "insights.metric.sessions", value: "\(summary.sessions)")
             InsightMetricCard(titleKey: "insights.metric.average_hr", value: summary.averageHeartRate > 0 ? L10n.format("insights.value.bpm", summary.averageHeartRate) : L10n.string("insights.value.no_data"))
+            InsightMetricCard(titleKey: "insights.metric.heat_load", value: summary.sessions > 0 ? "\(summary.heatLoadScore)" : L10n.string("insights.value.no_data"))
         }
         .panelStyle()
     }
@@ -1044,7 +1045,8 @@ struct HomeView: View {
             totalHeatMinutes: totalDurationMinutes,
             heatMinutesPerDay: Int((Double(totalDurationMinutes) / Double(activeDayCount)).rounded()),
             sessions: sessions.count,
-            averageHeartRate: averageHR
+            averageHeartRate: averageHR,
+            heatLoadScore: heatLoadScore(totalMinutes: totalDurationMinutes, averageHeartRate: averageHR, sessions: sessions.count)
         )
     }
 
@@ -1071,6 +1073,16 @@ struct HomeView: View {
             sauna: insightSessions.filter { $0.activityType == .sauna }.count,
             steam: insightSessions.filter { $0.activityType == .steamRoom }.count
         )
+    }
+
+    private func heatLoadScore(totalMinutes: Int, averageHeartRate: Int, sessions: Int) -> Int {
+        guard sessions > 0 else { return 0 }
+
+        let durationComponent = min(45.0, Double(totalMinutes) / 180.0 * 45.0)
+        let heartRateComponent = averageHeartRate > 0 ? min(45.0, Double(averageHeartRate) / 180.0 * 45.0) : 0
+        let consistencyComponent = min(10.0, Double(sessions) * 2.5)
+
+        return Int((durationComponent + heartRateComponent + consistencyComponent).rounded())
     }
 
     private func canMoveInsightWindow(_ direction: InsightWindowDirection) -> Bool {
@@ -1339,6 +1351,7 @@ private struct InsightSummary {
     let heatMinutesPerDay: Int
     let sessions: Int
     let averageHeartRate: Int
+    let heatLoadScore: Int
 }
 
 private struct InsightBucket {

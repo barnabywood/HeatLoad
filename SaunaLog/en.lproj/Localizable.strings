@@ -155,3 +155,5 @@
 
 "settings.monthly_insights_notifications.title" = "Monthly insight reminders";
 "settings.monthly_insights_notifications.subtitle" = "Notify me when monthly progress insights are ready.";
+
+"insights.metric.heat_load" = "Heat Load";

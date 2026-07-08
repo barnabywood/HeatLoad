@@ -122,3 +122,14 @@
 "insights.value.no_data" = "--";
 "notification.watch_missing.title" = "Watch-App nicht installiert";
 "notification.watch_missing.body" = "Installiere Sauna Log auf deiner Apple Watch, um Hitze-Sitzungen aufzuzeichnen.";
+
+"guidance.warming_up.title" = "Aufwärmen";
+"guidance.warming_up.detail" = "Warte auf Herzfrequenz.";
+"guidance.settling_in.title" = "Einpendeln";
+"guidance.settling_in.detail" = "Lass die Hitze ruhig wirken.";
+"guidance.steady.title" = "Stabil";
+"guidance.steady.detail" = "Atme ruhig weiter.";
+"guidance.high_strain.title" = "Hohe Belastung";
+"guidance.high_strain.detail" = "Erwäge, die Hitze zu verlassen.";
+"guidance.cool_down_soon.title" = "Bald abkühlen";
+"guidance.cool_down_soon.detail" = "Die Session ist fast beendet.";

@@ -125,3 +125,14 @@
 "insights.value.no_data" = "--";
 "notification.watch_missing.title" = "Watch-appen är inte installerad";
 "notification.watch_missing.body" = "Installera Sauna Log på Apple Watch för att registrera värmesessioner.";
+
+"guidance.warming_up.title" = "Värmer upp";
+"guidance.warming_up.detail" = "Väntar på puls.";
+"guidance.settling_in.title" = "Kommer igång";
+"guidance.settling_in.detail" = "Låt värmen byggas upp.";
+"guidance.steady.title" = "Stabilt";
+"guidance.steady.detail" = "Fortsätt andas lugnt.";
+"guidance.high_strain.title" = "Hög belastning";
+"guidance.high_strain.detail" = "Överväg att lämna värmen.";
+"guidance.cool_down_soon.title" = "Kyla ner snart";
+"guidance.cool_down_soon.detail" = "Passet är snart klart.";

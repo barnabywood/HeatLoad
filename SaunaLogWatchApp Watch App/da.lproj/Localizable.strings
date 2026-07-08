@@ -125,3 +125,14 @@
 "insights.value.no_data" = "--";
 "notification.watch_missing.title" = "Urappen er ikke installeret";
 "notification.watch_missing.body" = "Installer Sauna Log på Apple Watch for at registrere varmesessioner.";
+
+"guidance.warming_up.title" = "Varmer op";
+"guidance.warming_up.detail" = "Venter på puls.";
+"guidance.settling_in.title" = "Finder rytmen";
+"guidance.settling_in.detail" = "Lad varmen bygge roligt op.";
+"guidance.steady.title" = "Stabil";
+"guidance.steady.detail" = "Bliv ved med at trække vejret roligt.";
+"guidance.high_strain.title" = "Høj belastning";
+"guidance.high_strain.detail" = "Overvej at forlade varmen.";
+"guidance.cool_down_soon.title" = "Køl ned snart";
+"guidance.cool_down_soon.detail" = "Sessionen er næsten færdig.";

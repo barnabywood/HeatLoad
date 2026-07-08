@@ -155,3 +155,5 @@
 
 "settings.monthly_insights_notifications.title" = "月間分析通知";
 "settings.monthly_insights_notifications.subtitle" = "月間分析が準備できたら通知します。";
+
+"insights.metric.heat_load" = "ヒート負荷";

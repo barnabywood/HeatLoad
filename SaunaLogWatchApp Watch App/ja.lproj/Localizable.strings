@@ -125,3 +125,14 @@
 "insights.value.no_data" = "--";
 "notification.watch_missing.title" = "Watchアプリ未インストール";
 "notification.watch_missing.body" = "ヒートセッションを記録するには、Apple WatchにSauna Logをインストールしてください。";
+
+"guidance.warming_up.title" = "ウォームアップ中";
+"guidance.warming_up.detail" = "心拍数を待っています。";
+"guidance.settling_in.title" = "慣らし中";
+"guidance.settling_in.detail" = "ゆっくり熱に慣れましょう。";
+"guidance.steady.title" = "安定";
+"guidance.steady.detail" = "楽に呼吸を続けましょう。";
+"guidance.high_strain.title" = "高負荷";
+"guidance.high_strain.detail" = "退室を考えましょう。";
+"guidance.cool_down_soon.title" = "そろそろ冷却";
+"guidance.cool_down_soon.detail" = "セッションはもうすぐ終了です。";

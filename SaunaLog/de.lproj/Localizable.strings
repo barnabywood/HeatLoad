@@ -155,3 +155,5 @@
 
 "settings.monthly_insights_notifications.title" = "Monatliche Einblicke";
 "settings.monthly_insights_notifications.subtitle" = "Benachrichtige mich, wenn Monats-Einblicke bereit sind.";
+
+"insights.metric.heat_load" = "Hitzelast";
