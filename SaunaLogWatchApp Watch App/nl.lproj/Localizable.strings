@@ -131,8 +131,23 @@
 "guidance.settling_in.title" = "Op gang";
 "guidance.settling_in.detail" = "Laat de warmte rustig opbouwen.";
 "guidance.steady.title" = "Stabiel";
-"guidance.steady.detail" = "Blijf rustig ademen.";
 "guidance.high_strain.title" = "Hoge belasting";
 "guidance.high_strain.detail" = "Overweeg de warmte te verlaten.";
 "guidance.cool_down_soon.title" = "Koel straks af";
 "guidance.cool_down_soon.detail" = "De sessie is bijna klaar.";
+
+"session.heat_conditions" = "Warmte";
+"session.heat_conditions.detail" = "Pas aan voor deze sessie. Waarden worden voor dit warmtetype onthouden.";
+"session.temperature" = "Temperatuur";
+"session.humidity" = "Luchtvochtigheid";
+
+"guidance.building.title" = "Opbouwend";
+"guidance.building.detail" = "Hartslag stijgt boven de startwaarde van deze sessie.";
+"guidance.above_usual.title" = "Boven je gebruikelijke niveau";
+"guidance.above_usual.detail" = "Hartslag ligt boven je gebruikelijke niveau.";
+"guidance.below_usual.title" = "Onder je gebruikelijke niveau";
+"guidance.below_usual.detail" = "Hartslag ligt onder je gebruikelijke niveau.";
+
+"guidance.steady.detail" = "Hartslag ligt binnen je gebruikelijke niveau.";
+
+"session.heat_conditions.edit" = "Wijzig";

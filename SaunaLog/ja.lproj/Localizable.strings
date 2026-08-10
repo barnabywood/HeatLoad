@@ -157,3 +157,7 @@
 "settings.monthly_insights_notifications.subtitle" = "月間分析が準備できたら通知します。";
 
 "insights.metric.heat_load" = "ヒート負荷";
+
+"history.row.environment" = "%d°C · luftfuktighet %d%%";
+
+"history.row.environment_default" = "%d°C · 湿度 %d%%（デフォルト）";

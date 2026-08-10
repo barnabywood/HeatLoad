@@ -10,6 +10,10 @@ public final class SessionStore: ObservableObject {
         static let deletedSessions = "session.deleted.sessions"
         static let minHeartRateAlertBPM = "session.hrAlert.min"
         static let maxHeartRateAlertBPM = "session.hrAlert.max"
+        static let saunaTemperatureCelsius = "session.environment.sauna.temperatureCelsius"
+        static let saunaHumidityPercent = "session.environment.sauna.humidityPercent"
+        static let steamTemperatureCelsius = "session.environment.steam.temperatureCelsius"
+        static let steamHumidityPercent = "session.environment.steam.humidityPercent"
         static let deletedSessionIDs = "session.deleted.ids"
         static let deletedSessionSignatures = "session.deleted.signatures"
     }
@@ -26,6 +30,9 @@ public final class SessionStore: ObservableObject {
     @Published public private(set) var deletedSessions: [HeatSession] = []
     @Published public private(set) var minHeartRateAlertBPM: Int?
     @Published public private(set) var maxHeartRateAlertBPM: Int?
+    @Published public private(set) var currentTemperatureCelsius: Double?
+    @Published public private(set) var currentHumidityPercent: Double?
+    @Published public private(set) var currentEnvironmentWasEdited = false
 
     private let defaults: UserDefaults
     private var timerTask: Task<Void, Never>?
@@ -70,6 +77,8 @@ public final class SessionStore: ObservableObject {
         let storedMax = defaults.integer(forKey: Keys.maxHeartRateAlertBPM)
         self.minHeartRateAlertBPM = storedMin > 0 ? storedMin : nil
         self.maxHeartRateAlertBPM = storedMax > 0 ? storedMax : nil
+        self.currentTemperatureCelsius = nil
+        self.currentHumidityPercent = nil
 
         persistPresets()
         persistHeartRateAlerts()
@@ -80,6 +89,40 @@ public final class SessionStore: ObservableObject {
 
     public var isSessionActive: Bool {
         activeSessionStart != nil
+    }
+
+    public func environmentalDefaults(for activity: HeatActivityType) -> (temperatureCelsius: Double, humidityPercent: Double) {
+        switch activity {
+        case .sauna:
+            return (
+                defaults.object(forKey: Keys.saunaTemperatureCelsius) as? Double ?? 80,
+                defaults.object(forKey: Keys.saunaHumidityPercent) as? Double ?? 10
+            )
+        case .steamRoom:
+            return (
+                defaults.object(forKey: Keys.steamTemperatureCelsius) as? Double ?? 45,
+                defaults.object(forKey: Keys.steamHumidityPercent) as? Double ?? 100
+            )
+        }
+    }
+
+    public func updateEnvironment(temperatureCelsius: Double?, humidityPercent: Double?, rememberFor activity: HeatActivityType? = nil) {
+        currentTemperatureCelsius = temperatureCelsius.map { Swift.max(0, Swift.min(120, $0)) }
+        currentHumidityPercent = humidityPercent.map { Swift.max(0, Swift.min(100, $0)) }
+        currentEnvironmentWasEdited = true
+
+        guard let activity else { return }
+        let temperature = currentTemperatureCelsius ?? environmentalDefaults(for: activity).temperatureCelsius
+        let humidity = currentHumidityPercent ?? environmentalDefaults(for: activity).humidityPercent
+
+        switch activity {
+        case .sauna:
+            defaults.set(temperature, forKey: Keys.saunaTemperatureCelsius)
+            defaults.set(humidity, forKey: Keys.saunaHumidityPercent)
+        case .steamRoom:
+            defaults.set(temperature, forKey: Keys.steamTemperatureCelsius)
+            defaults.set(humidity, forKey: Keys.steamHumidityPercent)
+        }
     }
 
     public func setPreset(_ seconds: Int) {
@@ -166,6 +209,10 @@ public final class SessionStore: ObservableObject {
         activeSessionStart = start
         activeSessionEnd = start.addingTimeInterval(TimeInterval(selectedPresetSeconds))
         currentPlannedDurationSeconds = selectedPresetSeconds
+        let environment = environmentalDefaults(for: selectedActivity)
+        currentTemperatureCelsius = environment.temperatureCelsius
+        currentHumidityPercent = environment.humidityPercent
+        currentEnvironmentWasEdited = false
 
         syncCountdownFromClock()
         startTimerLoop()
@@ -194,6 +241,9 @@ public final class SessionStore: ObservableObject {
         timerTask = nil
         activeSessionStart = nil
         activeSessionEnd = nil
+        currentTemperatureCelsius = nil
+        currentHumidityPercent = nil
+        currentEnvironmentWasEdited = false
 
         if let session = buildSession(start) {
             deletedSessionIDs.remove(session.id)

@@ -157,3 +157,7 @@
 "settings.monthly_insights_notifications.subtitle" = "Varsle meg når månedsinnsikten er klar.";
 
 "insights.metric.heat_load" = "Varmebelastning";
+
+"history.row.environment" = "%d°C · %d%% luftfuktighet";
+
+"history.row.environment_default" = "%d°C · %d%% luftfuktighet (standard)";

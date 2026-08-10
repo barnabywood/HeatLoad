@@ -128,8 +128,23 @@
 "guidance.settling_in.title" = "Settling in";
 "guidance.settling_in.detail" = "Let heat build steadily.";
 "guidance.steady.title" = "Steady";
-"guidance.steady.detail" = "Keep breathing easy.";
 "guidance.high_strain.title" = "High strain";
 "guidance.high_strain.detail" = "Consider leaving heat.";
 "guidance.cool_down_soon.title" = "Cool down soon";
 "guidance.cool_down_soon.detail" = "Session is nearly complete.";
+
+"session.heat_conditions" = "Heat";
+"session.heat_conditions.detail" = "Adjust these for this session. Values are remembered for this heat type.";
+"session.temperature" = "Temperature";
+"session.humidity" = "Humidity";
+
+"guidance.building.title" = "Building";
+"guidance.building.detail" = "Heart rate is rising above your session baseline.";
+"guidance.above_usual.title" = "Above your usual";
+"guidance.above_usual.detail" = "Heart rate is above your usual level.";
+"guidance.below_usual.title" = "Below your usual";
+"guidance.below_usual.detail" = "Heart rate is below your usual level.";
+
+"guidance.steady.detail" = "Heart rate is within your usual range.";
+
+"session.heat_conditions.edit" = "Edit";

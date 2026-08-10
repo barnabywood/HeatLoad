@@ -131,8 +131,23 @@
 "guidance.settling_in.title" = "Asettumassa";
 "guidance.settling_in.detail" = "Anna lämmön nousta tasaisesti.";
 "guidance.steady.title" = "Tasainen";
-"guidance.steady.detail" = "Hengitä rauhallisesti.";
 "guidance.high_strain.title" = "Kova rasitus";
 "guidance.high_strain.detail" = "Harkitse poistumista lämmöstä.";
 "guidance.cool_down_soon.title" = "Jäähdyttele pian";
 "guidance.cool_down_soon.detail" = "Sessio on lähes valmis.";
+
+"session.heat_conditions" = "Lämpö";
+"session.heat_conditions.detail" = "Säädä tämän istunnon arvoja. Ne muistetaan tälle lämpötyypille.";
+"session.temperature" = "Lämpötila";
+"session.humidity" = "Kosteus";
+
+"guidance.building.title" = "Nousemassa";
+"guidance.building.detail" = "Syke nousee tämän istunnon lähtötason yläpuolelle.";
+"guidance.above_usual.title" = "Tavallista korkeampi";
+"guidance.above_usual.detail" = "Syke on tavallista korkeampi.";
+"guidance.below_usual.title" = "Tavallista matalampi";
+"guidance.below_usual.detail" = "Syke on tavallista matalampi.";
+
+"guidance.steady.detail" = "Syke on tavallisella tasollasi.";
+
+"session.heat_conditions.edit" = "Muokkaa";

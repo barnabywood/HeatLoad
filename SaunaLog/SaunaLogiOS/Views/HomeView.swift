@@ -704,6 +704,16 @@ struct HomeView: View {
                                 .font(AppTheme.bodyFont(12))
                                 .foregroundStyle(.white.opacity(0.78))
                                 .fixedSize(horizontal: false, vertical: true)
+                            if let temperature = session.temperatureCelsius, let humidity = session.humidityPercent {
+                                Text(L10n.format(
+                                    session.environmentWasDefault == true ? "history.row.environment_default" : "history.row.environment",
+                                    Int(temperature.rounded()),
+                                    Int(humidity.rounded())
+                                ))
+                                    .font(AppTheme.bodyFont(12))
+                                    .foregroundStyle(.white.opacity(0.78))
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(10)

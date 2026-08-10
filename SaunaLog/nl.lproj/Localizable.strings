@@ -157,3 +157,7 @@
 "settings.monthly_insights_notifications.subtitle" = "Meld wanneer maandinzichten klaar zijn.";
 
 "insights.metric.heat_load" = "Warmtebelasting";
+
+"history.row.environment" = "%d°C · %d%% luchtvochtigheid";
+
+"history.row.environment_default" = "%d°C · %d%% luchtvochtigheid (standaard)";

@@ -131,8 +131,23 @@
 "guidance.settling_in.title" = "Kommer i gang";
 "guidance.settling_in.detail" = "La varmen bygge seg rolig opp.";
 "guidance.steady.title" = "Stabil";
-"guidance.steady.detail" = "Fortsett å puste rolig.";
 "guidance.high_strain.title" = "Høy belastning";
 "guidance.high_strain.detail" = "Vurder å gå ut av varmen.";
 "guidance.cool_down_soon.title" = "Kjøl ned snart";
 "guidance.cool_down_soon.detail" = "Økten er snart ferdig.";
+
+"session.heat_conditions" = "Varme";
+"session.heat_conditions.detail" = "Juster for denne økten. Verdiene huskes for denne varmetypen.";
+"session.temperature" = "Temperatur";
+"session.humidity" = "Luftfuktighet";
+
+"guidance.building.title" = "Stigende";
+"guidance.building.detail" = "Pulsen stiger over øktens startnivå.";
+"guidance.above_usual.title" = "Over det vanlige";
+"guidance.above_usual.detail" = "Pulsen er over det vanlige nivået ditt.";
+"guidance.below_usual.title" = "Under det vanlige";
+"guidance.below_usual.detail" = "Pulsen er under det vanlige nivået ditt.";
+
+"guidance.steady.detail" = "Pulsen er innenfor det vanlige nivået ditt.";
+
+"session.heat_conditions.edit" = "Endre";

@@ -157,3 +157,7 @@
 "settings.monthly_insights_notifications.subtitle" = "Benachrichtige mich, wenn Monats-Einblicke bereit sind.";
 
 "insights.metric.heat_load" = "Hitzelast";
+
+"history.row.environment" = "%d°C · %d%% Luftfeuchtigkeit";
+
+"history.row.environment_default" = "%d°C · %d%% Luftfeuchtigkeit (Standard)";

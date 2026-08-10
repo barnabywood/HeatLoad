@@ -157,3 +157,7 @@
 "settings.monthly_insights_notifications.subtitle" = "Notify me when monthly progress insights are ready.";
 
 "insights.metric.heat_load" = "Heat Load";
+
+"history.row.environment" = "%d°C · %d%% humidity";
+
+"history.row.environment_default" = "%d°C · %d%% humidity (Default)";

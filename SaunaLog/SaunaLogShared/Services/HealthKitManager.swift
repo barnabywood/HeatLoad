@@ -8,8 +8,14 @@ public final class HealthKitManager: NSObject, ObservableObject {
     public static let metadataColdShowerKey = "com.heatload.hadColdShower"
 
     @Published public private(set) var currentHeartRate: Double?
+    @Published public private(set) var sessionStartingHeartRate: Double?
     @Published public private(set) var currentActiveCalories: Double = 0
     @Published public private(set) var currentTotalCalories: Double = 0
+
+    public var currentSessionHeartRateChange: Double? {
+        guard let currentHeartRate, let sessionStartingHeartRate else { return nil }
+        return currentHeartRate - sessionStartingHeartRate
+    }
 
 #if os(watchOS)
     private let healthStore = HKHealthStore()
@@ -68,6 +74,8 @@ public final class HealthKitManager: NSObject, ObservableObject {
 
         heartRateReadings = []
         currentHeartRate = nil
+        sessionStartingHeartRate = nil
+        lastPolledHeartRateBPM = nil
         currentActiveCalories = 0
         currentTotalCalories = 0
         lastEndedWorkoutUUID = nil
@@ -319,6 +327,10 @@ public final class HealthKitManager: NSObject, ObservableObject {
            let quantity = statistics.mostRecentQuantity() {
             let bpm = quantity.doubleValue(for: HKUnit(from: "count/min"))
             currentHeartRate = bpm
+
+            if sessionStartingHeartRate == nil {
+                sessionStartingHeartRate = bpm
+            }
 
             if let last = lastPolledHeartRateBPM {
                 if abs(last - bpm) >= 0.5 {

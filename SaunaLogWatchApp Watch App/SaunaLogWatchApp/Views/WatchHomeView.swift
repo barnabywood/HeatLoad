@@ -21,6 +21,9 @@ struct WatchHomeView: View {
     @State private var lastMinHRAlertDate: Date?
     @State private var lastMaxHRAlertDate: Date?
     @State private var showingAddTimeOptions = false
+    @State private var showingEnvironmentEditor = false
+    @State private var editingTemperatureCelsius = 0.0
+    @State private var editingHumidityPercent = 0.0
 
     var body: some View {
         ZStack {
@@ -28,7 +31,11 @@ struct WatchHomeView: View {
 
             Group {
                 if store.isSessionActive {
-                    activeScreen
+                    if showingEnvironmentEditor {
+                        environmentEditorScreen
+                    } else {
+                        activeScreen
+                    }
                 } else {
                     setupFlow
                 }
@@ -165,6 +172,30 @@ struct WatchHomeView: View {
                     metricRow("metric.active_calories", value: String(Int(health.currentActiveCalories.rounded())))
                     metricRow("metric.total_calories", value: String(Int(health.currentTotalCalories.rounded())))
 
+                    Button {
+                        beginEnvironmentEditing()
+                    } label: {
+                        HStack {
+                            Text(L10n.string("session.heat_conditions"))
+                            Spacer()
+                            Text(environmentSummary)
+                                .foregroundStyle(.white.opacity(0.76))
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 11, weight: .semibold))
+                                .foregroundStyle(AppTheme.steam)
+                        }
+                        .font(AppTheme.bodyFont(12))
+                        .foregroundStyle(.white)
+                        .padding(.vertical, 7)
+                        .padding(.horizontal, 8)
+                        .background(AppTheme.steam.opacity(0.14), in: RoundedRectangle(cornerRadius: 9, style: .continuous))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 9, style: .continuous)
+                                .stroke(AppTheme.steam.opacity(0.62), lineWidth: 1)
+                        )
+                    }
+                    .buttonStyle(.plain)
+
                     Toggle(L10n.string("session.cold_shower"), isOn: $hadColdShower)
                         .tint(AppTheme.steam)
                         .foregroundStyle(.white)
@@ -200,11 +231,103 @@ struct WatchHomeView: View {
         .scrollIndicators(.hidden)
     }
 
+    private var environmentEditorScreen: some View {
+        ScrollView(.vertical) {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    Button {
+                        showingEnvironmentEditor = false
+                        WKInterfaceDevice.current().play(.click)
+                    } label: {
+                        Label(L10n.string("actions.cancel"), systemImage: "chevron.left")
+                            .font(AppTheme.bodyFont(13))
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundStyle(.white.opacity(0.84))
+
+                    Spacer()
+
+                    Text(L10n.string("session.heat_conditions"))
+                        .font(AppTheme.accentFont(16))
+                        .foregroundStyle(AppTheme.sand)
+                }
+
+                Text(L10n.string("session.heat_conditions.detail"))
+                    .font(AppTheme.bodyFont(12))
+                    .foregroundStyle(.white.opacity(0.78))
+                    .fixedSize(horizontal: false, vertical: true)
+
+                compactPanel {
+                    Stepper(value: $editingTemperatureCelsius, in: 0...120, step: 1) {
+                        environmentStepperLabel(
+                            titleKey: "session.temperature",
+                            value: "\(Int(editingTemperatureCelsius.rounded()))°C"
+                        )
+                    }
+
+                    Stepper(value: $editingHumidityPercent, in: 0...100, step: 1) {
+                        environmentStepperLabel(
+                            titleKey: "session.humidity",
+                            value: "\(Int(editingHumidityPercent.rounded()))%"
+                        )
+                    }
+                }
+
+                Button(L10n.string("actions.save")) {
+                    store.updateEnvironment(
+                        temperatureCelsius: editingTemperatureCelsius,
+                        humidityPercent: editingHumidityPercent,
+                        rememberFor: store.selectedActivity
+                    )
+                    showingEnvironmentEditor = false
+                    WKInterfaceDevice.current().play(.success)
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(AppTheme.steam)
+                .frame(maxWidth: .infinity)
+            }
+            .frame(maxWidth: .infinity, alignment: .top)
+        }
+        .scrollIndicators(.hidden)
+        .onAppear {
+            editingTemperatureCelsius = store.currentTemperatureCelsius ?? store.environmentalDefaults(for: store.selectedActivity).temperatureCelsius
+            editingHumidityPercent = store.currentHumidityPercent ?? store.environmentalDefaults(for: store.selectedActivity).humidityPercent
+        }
+    }
+
     private var heartRateText: String {
         if let bpm = health.currentHeartRate {
             return "\(Int(bpm))"
         }
         return "--"
+    }
+
+    private var environmentSummary: String {
+        let temperature = store.currentTemperatureCelsius.map { "\(Int($0.rounded()))°C" } ?? "--"
+        let humidity = store.currentHumidityPercent.map { "\(Int($0.rounded()))%" } ?? "--"
+        return "\(temperature) · \(humidity)"
+    }
+
+    private func beginEnvironmentEditing() {
+        editingTemperatureCelsius = store.currentTemperatureCelsius ?? store.environmentalDefaults(for: store.selectedActivity).temperatureCelsius
+        editingHumidityPercent = store.currentHumidityPercent ?? store.environmentalDefaults(for: store.selectedActivity).humidityPercent
+        showingEnvironmentEditor = true
+        WKInterfaceDevice.current().play(.click)
+    }
+
+    private func environmentStepperLabel(titleKey: String, value: String) -> some View {
+        VStack(alignment: .leading, spacing: 1) {
+            Text(L10n.string(titleKey))
+                .font(AppTheme.bodyFont(11))
+                .foregroundStyle(.white.opacity(0.76))
+                .lineLimit(1)
+
+            Text(value)
+                .font(AppTheme.accentFont(20))
+                .monospacedDigit()
+                .foregroundStyle(.white)
+                .lineLimit(1)
+        }
     }
 
     private var guidancePanel: some View {
@@ -248,6 +371,21 @@ struct WatchHomeView: View {
             return .highStrain
         }
 
+        let typicalHeartRate = recentTypicalHeartRate
+        let currentSessionChange = health.currentSessionHeartRateChange ?? 0
+
+        if currentSessionChange >= 12 || (typicalHeartRate.map { bpm >= $0 * 1.12 } ?? false) {
+            return .aboveUsual
+        }
+
+        if currentSessionChange <= -10 || (typicalHeartRate.map { bpm <= $0 * 0.90 } ?? false) {
+            return .belowUsual
+        }
+
+        if currentSessionChange >= 6 || (typicalHeartRate.map { bpm >= $0 * 1.05 } ?? false) {
+            return .building
+        }
+
         if progress >= 0.85 {
             return .coolDownSoon
         }
@@ -257,6 +395,16 @@ struct WatchHomeView: View {
         }
 
         return .steady
+    }
+
+    private var recentTypicalHeartRate: Double? {
+        let values = store.recentSessions
+            .filter { $0.activityType == store.selectedActivity && $0.averageHeartRate > 0 }
+            .prefix(5)
+            .map(\.averageHeartRate)
+
+        guard !values.isEmpty else { return nil }
+        return values.reduce(0, +) / Double(values.count)
     }
 
     private func activityButton(_ type: HeatActivityType, symbol: String, subtitleKey: String, isPrimary: Bool) -> some View {
@@ -411,6 +559,10 @@ struct WatchHomeView: View {
         stopCompletionReminder(resetTrigger: true)
         cancelSessionEndAlert()
 
+        let sessionTemperature = store.currentTemperatureCelsius
+        let sessionHumidity = store.currentHumidityPercent
+        let environmentWasDefault = !store.currentEnvironmentWasEdited
+
         store.stopSession { start in
             let end = Date()
             let selectedActivity = store.selectedActivity
@@ -433,7 +585,10 @@ struct WatchHomeView: View {
                         activityType: selectedActivity,
                         hadColdShower: hadShower,
                         plannedDurationSeconds: plannedDuration,
-                        metrics: metrics
+                        metrics: metrics,
+                        temperatureCelsius: sessionTemperature,
+                        humidityPercent: sessionHumidity,
+                        environmentWasDefault: environmentWasDefault
                     )
                 } catch {
                     let fallbackMetrics = (
@@ -449,7 +604,10 @@ struct WatchHomeView: View {
                         activityType: selectedActivity,
                         hadColdShower: hadShower,
                         plannedDurationSeconds: plannedDuration,
-                        metrics: fallbackMetrics
+                        metrics: fallbackMetrics,
+                        temperatureCelsius: sessionTemperature,
+                        humidityPercent: sessionHumidity,
+                        environmentWasDefault: environmentWasDefault
                     )
 
                     alertText = L10n.format("session.error.saved_health_failed", error.localizedDescription)
@@ -465,7 +623,10 @@ struct WatchHomeView: View {
         activityType: HeatActivityType,
         hadColdShower: Bool,
         plannedDurationSeconds: Int,
-        metrics: (average: Double, max: Double, activeCalories: Double, totalCalories: Double)
+        metrics: (average: Double, max: Double, activeCalories: Double, totalCalories: Double),
+        temperatureCelsius: Double?,
+        humidityPercent: Double?,
+        environmentWasDefault: Bool
     ) {
         let session = HeatSession(
             id: health.lastEndedWorkoutUUID ?? UUID(),
@@ -477,7 +638,10 @@ struct WatchHomeView: View {
             averageHeartRate: metrics.average,
             maxHeartRate: metrics.max,
             activeCalories: metrics.activeCalories,
-            totalCalories: metrics.totalCalories
+            totalCalories: metrics.totalCalories,
+            temperatureCelsius: temperatureCelsius,
+            humidityPercent: humidityPercent,
+            environmentWasDefault: environmentWasDefault
         )
 
         store.addSession(session)
@@ -667,7 +831,10 @@ private struct SlideToConfirm: View {
 private enum WatchGuidance {
     case warmingUp
     case settlingIn
+    case building
     case steady
+    case aboveUsual
+    case belowUsual
     case highStrain
     case coolDownSoon
 
@@ -675,7 +842,10 @@ private enum WatchGuidance {
         switch self {
         case .warmingUp: return "guidance.warming_up.title"
         case .settlingIn: return "guidance.settling_in.title"
+        case .building: return "guidance.building.title"
         case .steady: return "guidance.steady.title"
+        case .aboveUsual: return "guidance.above_usual.title"
+        case .belowUsual: return "guidance.below_usual.title"
         case .highStrain: return "guidance.high_strain.title"
         case .coolDownSoon: return "guidance.cool_down_soon.title"
         }
@@ -685,7 +855,10 @@ private enum WatchGuidance {
         switch self {
         case .warmingUp: return "guidance.warming_up.detail"
         case .settlingIn: return "guidance.settling_in.detail"
+        case .building: return "guidance.building.detail"
         case .steady: return "guidance.steady.detail"
+        case .aboveUsual: return "guidance.above_usual.detail"
+        case .belowUsual: return "guidance.below_usual.detail"
         case .highStrain: return "guidance.high_strain.detail"
         case .coolDownSoon: return "guidance.cool_down_soon.detail"
         }
@@ -694,7 +867,10 @@ private enum WatchGuidance {
     var color: Color {
         switch self {
         case .warmingUp, .settlingIn: return AppTheme.sand
+        case .building: return AppTheme.steam
         case .steady: return AppTheme.steam
+        case .aboveUsual: return AppTheme.ember
+        case .belowUsual: return AppTheme.sand
         case .highStrain: return AppTheme.ember
         case .coolDownSoon: return Color.yellow.opacity(0.95)
         }

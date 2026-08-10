@@ -157,3 +157,7 @@
 "settings.monthly_insights_notifications.subtitle" = "Ilmoita, kun kuukauden näkymät ovat valmiit.";
 
 "insights.metric.heat_load" = "Lämpökuorma";
+
+"history.row.environment" = "%d°C · %d%% kosteus";
+
+"history.row.environment_default" = "%d°C · %d%% kosteus (oletus)";

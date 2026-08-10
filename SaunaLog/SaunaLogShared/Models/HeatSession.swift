@@ -37,6 +37,9 @@ public struct HeatSession: Codable, Identifiable {
     public let maxHeartRate: Double
     public let activeCalories: Double
     public let totalCalories: Double
+    public let temperatureCelsius: Double?
+    public let humidityPercent: Double?
+    public let environmentWasDefault: Bool?
 
     public init(
         id: UUID = UUID(),
@@ -48,7 +51,10 @@ public struct HeatSession: Codable, Identifiable {
         averageHeartRate: Double,
         maxHeartRate: Double,
         activeCalories: Double = 0,
-        totalCalories: Double = 0
+        totalCalories: Double = 0,
+        temperatureCelsius: Double? = nil,
+        humidityPercent: Double? = nil,
+        environmentWasDefault: Bool? = nil
     ) {
         self.id = id
         self.activityType = activityType
@@ -60,6 +66,9 @@ public struct HeatSession: Codable, Identifiable {
         self.maxHeartRate = maxHeartRate
         self.activeCalories = activeCalories
         self.totalCalories = totalCalories
+        self.temperatureCelsius = temperatureCelsius
+        self.humidityPercent = humidityPercent
+        self.environmentWasDefault = environmentWasDefault
     }
 
     public var actualDurationSeconds: Int {
@@ -77,6 +86,9 @@ public struct HeatSession: Codable, Identifiable {
         case maxHeartRate
         case activeCalories
         case totalCalories
+        case temperatureCelsius
+        case humidityPercent
+        case environmentWasDefault
     }
 
     public init(from decoder: Decoder) throws {
@@ -91,5 +103,8 @@ public struct HeatSession: Codable, Identifiable {
         maxHeartRate = try container.decode(Double.self, forKey: .maxHeartRate)
         activeCalories = try container.decodeIfPresent(Double.self, forKey: .activeCalories) ?? 0
         totalCalories = try container.decodeIfPresent(Double.self, forKey: .totalCalories) ?? 0
+        temperatureCelsius = try container.decodeIfPresent(Double.self, forKey: .temperatureCelsius)
+        humidityPercent = try container.decodeIfPresent(Double.self, forKey: .humidityPercent)
+        environmentWasDefault = try container.decodeIfPresent(Bool.self, forKey: .environmentWasDefault)
     }
 }
