@@ -37,7 +37,7 @@ h3 { font-size:1.22rem; letter-spacing:-.035em; }
 .phone-capture { display:block; width:100%; border:2px solid #050608; border-radius:38px; }
 .screenshot-showcase { display:grid; grid-template-columns:.72fr 1.28fr; gap:55px; align-items:center; }
 .iphone-render-grid { display:block; }
-.iphone-render { display:block; width:min(100%, 620px); margin-left:auto; background:transparent; filter:drop-shadow(0 28px 34px rgba(0,0,0,.48)); }
+.iphone-render { display:block; width:min(100%, 700px); margin-left:auto; background:transparent; filter:drop-shadow(0 28px 34px rgba(0,0,0,.48)); }
 .section { padding:110px 0; }
 .section.alt { background:linear-gradient(180deg,transparent,rgba(46,140,153,.07),transparent); }
 .section-heading { display:flex; justify-content:space-between; gap:40px; align-items:end; margin-bottom:42px; }
