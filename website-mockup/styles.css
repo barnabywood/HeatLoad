@@ -31,13 +31,13 @@ h3 { font-size:1.22rem; letter-spacing:-.035em; }
 .hero-media { position:relative; }
 .hero-media:before { content:''; position:absolute; inset:8% -12% 4% -12%; background:radial-gradient(ellipse,rgba(228,87,46,.4),transparent 66%); filter:blur(24px); }
 .hero-media img { position:relative; display:block; width:100%; max-height:625px; object-fit:cover; object-position:center; border-radius:30px; border:1px solid rgba(244,239,230,.2); box-shadow:0 36px 90px rgba(0,0,0,.55); }
-.watch-render { display:block; width:min(100%, 420px); margin:0 auto 30px; filter:drop-shadow(0 28px 34px rgba(0,0,0,.48)); mix-blend-mode:screen; }
+.watch-render { display:block; width:min(100%, 420px); margin:0 auto 30px; background:transparent; filter:drop-shadow(0 28px 34px rgba(0,0,0,.48)); mix-blend-mode:screen; -webkit-mask-image:radial-gradient(ellipse at center, #000 66%, rgba(0,0,0,.88) 82%, transparent 100%); mask-image:radial-gradient(ellipse at center, #000 66%, rgba(0,0,0,.88) 82%, transparent 100%); }
 .phone-device { position:relative; width:min(100%, 360px); margin:0 auto; padding:10px; border:2px solid #6e7379; border-radius:48px; background:linear-gradient(145deg,#636970,#1a1e23 24%,#050608 72%,#555b62); box-shadow:0 30px 72px rgba(0,0,0,.58),inset 0 1px 2px rgba(255,255,255,.45); }
 .phone-device:before { content:''; position:absolute; z-index:2; top:11px; left:50%; width:34%; height:22px; transform:translateX(-50%); border-radius:0 0 15px 15px; background:#050608; box-shadow:inset 0 -1px 2px rgba(255,255,255,.08); pointer-events:none; }
 .phone-capture { display:block; width:100%; border:2px solid #050608; border-radius:38px; }
 .screenshot-showcase { display:grid; grid-template-columns:.72fr 1.28fr; gap:55px; align-items:center; }
 .iphone-render-grid { display:block; }
-.iphone-render { display:block; width:min(100%, 620px); margin-left:auto; filter:drop-shadow(0 28px 34px rgba(0,0,0,.48)); mix-blend-mode:screen; }
+.iphone-render { display:block; width:min(100%, 620px); margin-left:auto; background:transparent; filter:drop-shadow(0 28px 34px rgba(0,0,0,.48)); mix-blend-mode:screen; -webkit-mask-image:radial-gradient(ellipse at center, #000 66%, rgba(0,0,0,.88) 82%, transparent 100%); mask-image:radial-gradient(ellipse at center, #000 66%, rgba(0,0,0,.88) 82%, transparent 100%); }
 .section { padding:110px 0; }
 .section.alt { background:linear-gradient(180deg,transparent,rgba(46,140,153,.07),transparent); }
 .section-heading { display:flex; justify-content:space-between; gap:40px; align-items:end; margin-bottom:42px; }
