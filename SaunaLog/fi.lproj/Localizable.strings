@@ -72,6 +72,7 @@
 "support.email.subject" = "Sauna Log -tuki";
 "support.feature_request.subject" = "Sauna Log -ominaisuustoive";
 "support.leave_review" = "Arvostele";
+"support.website" = "Verkkosivusto";
 "support.privacy_policy" = "Tietosuojakäytäntö";
 "support.privacy_policy_url" = "https://barnabywood.github.io/HeatLoad/privacy-policy.html";
 "support.request_feature" = "Pyydä ominaisuutta";

@@ -72,6 +72,7 @@
 "support.email.subject" = "Sauna Log Support";
 "support.feature_request.subject" = "Sauna Log Feature Request";
 "support.leave_review" = "Leave a Review";
+"support.website" = "Website";
 "support.privacy_policy" = "Privacy Policy";
 "support.privacy_policy_url" = "https://barnabywood.github.io/HeatLoad/privacy-policy.html";
 "support.request_feature" = "Request a Feature";
@@ -153,7 +154,7 @@
 "insights.window.this_year" = "This year";
 "insights.window.last_year" = "Last year";
 
-"settings.monthly_insights_notifications.title" = "Monthly insight reminders";
+"settings.monthly_insights_notifications.title" = "Monthly Insight Reminders";
 "settings.monthly_insights_notifications.subtitle" = "Notify me when monthly progress insights are ready.";
 
 "insights.metric.heat_load" = "Heat Load";

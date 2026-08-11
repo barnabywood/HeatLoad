@@ -35,6 +35,8 @@ struct HomeView: View {
             ?? URL(string: "https://barnabywood.github.io/HeatLoad/privacy-policy.html")!
     }
 
+    private let websiteURL = URL(string: "https://saunalogapp.com")!
+
     private var contactURL: URL {
         mailURL(subjectKey: "support.email.subject")
     }
@@ -79,6 +81,9 @@ struct HomeView: View {
         }
         .onChange(of: store.presets) { _, _ in
             syncPresetStateToWatch()
+        }
+        .onChange(of: store.recentSessions) { _, _ in
+            maybePromptForReview()
         }
         .onChange(of: store.selectedPresetSeconds) { _, _ in
             syncPresetStateToWatch()
@@ -638,6 +643,24 @@ struct HomeView: View {
                         .foregroundStyle(AppTheme.sand)
                 }
                 .padding(10)
+                .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+            }
+            .buttonStyle(.plain)
+
+            Button {
+                softTap()
+                openURL(websiteURL)
+            } label: {
+                HStack {
+                    Text("support.website")
+                        .font(AppTheme.accentFont(14))
+                        .fixedSize(horizontal: false, vertical: true)
+                    Spacer()
+                    Image(systemName: "globe")
+                        .foregroundStyle(AppTheme.sand)
+                }
+                .padding(10)
+                .frame(maxWidth: .infinity)
                 .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
             }
             .buttonStyle(.plain)

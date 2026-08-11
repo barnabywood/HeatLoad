@@ -72,6 +72,7 @@
 "support.email.subject" = "Sauna Logサポート";
 "support.feature_request.subject" = "Sauna Log機能リクエスト";
 "support.leave_review" = "レビューを書く";
+"support.website" = "ウェブサイト";
 "support.privacy_policy" = "プライバシーポリシー";
 "support.privacy_policy_url" = "https://barnabywood.github.io/HeatLoad/privacy-policy.html";
 "support.request_feature" = "機能をリクエスト";
