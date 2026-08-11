@@ -372,15 +372,15 @@ struct WatchHomeView: View {
         }
 
         let typicalHeartRate = recentTypicalHeartRate
-        if typicalHeartRate.map { bpm >= -e * 1.12 } ?? false {
+        if typicalHeartRate.map { bpm >= $0 * 1.12 } ?? false {
             return .aboveUsual
         }
 
-        if typicalHeartRate.map { bpm <= -e * 0.90 } ?? false {
+        if typicalHeartRate.map { bpm <= $0 * 0.90 } ?? false {
             return .belowUsual
         }
 
-        if typicalHeartRate.map { bpm >= -e * 1.05 } ?? false {
+        if typicalHeartRate.map { bpm >= $0 * 1.05 } ?? false {
             return .building
         }
 
