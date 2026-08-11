@@ -4,6 +4,39 @@ import StoreKit
 import UIKit
 import WatchConnectivity
 
+private struct TimerEditAlertModifier: ViewModifier {
+    @Binding var isPresented: Bool
+    @Binding var input: String
+    let onSave: () -> Void
+
+    func body(content: Content) -> some View {
+        content.alert(L10n.string("timer.edit.alert_title"), isPresented: $isPresented) {
+            TextField(L10n.string("timer.edit.minutes_placeholder"), text: $input)
+                .keyboardType(.numberPad)
+
+            Button(L10n.string("actions.save"), action: onSave)
+            Button(L10n.string("actions.cancel"), role: .cancel) {}
+        } message: {
+            Text(verbatim: L10n.string("timer.edit.message"))
+        }
+    }
+}
+
+private struct RouteNotificationModifier: ViewModifier {
+    let onRoute: (SaunaLogLocalNotificationManager.Route) -> Void
+
+    func body(content: Content) -> some View {
+        content.onReceive(
+            NotificationCenter.default.publisher(
+                for: SaunaLogLocalNotificationManager.routeNotificationName
+            )
+        ) { notification in
+            guard let route = notification.object as? SaunaLogLocalNotificationManager.Route else { return }
+            onRoute(route)
+        }
+    }
+}
+
 struct HomeView: View {
     @Environment(\.requestReview) private var requestReview
     @Environment(\.openURL) private var openURL
@@ -23,6 +56,7 @@ struct HomeView: View {
     @State private var selectedInsightOffset = 0
     @State private var pendingDeletionSession: HeatSession?
     @State private var showingDeleteConfirmation = false
+    @State private var deleteConfirmationMessage = ""
     @State private var deleteFailureMessage: String?
     @State private var hasCountedLaunch = false
     @AppStorage("ios.launchCount") private var launchCount = 0
@@ -49,119 +83,144 @@ struct HomeView: View {
         watchSync.isWatchReady
     }
 
-    var body: some View {
-        Group {
-            if showingSupport {
-                supportPage
-            } else if showingInsights {
-                insightsPage
-            } else {
-                mainPage
+    private var deleteFailureAlertPresented: Binding<Bool> {
+        Binding(
+            get: { deleteFailureMessage != nil },
+            set: { isPresented in
+                if !isPresented {
+                    deleteFailureMessage = nil
+                }
             }
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .onAppear {
-            if !hasCountedLaunch {
-                launchCount += 1
-                hasCountedLaunch = true
-            }
-            watchSync.refreshStatus()
-            scheduleWatchInstallReminderIfNeeded()
-            maybePromptForReview()
-            syncTrialStateToWatch()
-            syncPresetStateToWatch()
-            syncHeartRateAlertStateToWatch()
-        }
-        .onChange(of: trial.lifetimeSessionsCompleted) { _, _ in
-            maybePromptForReview()
-            syncTrialStateToWatch()
-        }
-        .onChange(of: trial.hasUnlocked) { _, _ in
-            syncTrialStateToWatch()
-        }
-        .onChange(of: store.presets) { _, _ in
-            syncPresetStateToWatch()
-        }
-        .onChange(of: store.recentSessions) { _, _ in
-            maybePromptForReview()
-        }
-        .onChange(of: store.selectedPresetSeconds) { _, _ in
-            syncPresetStateToWatch()
-        }
-        .onChange(of: store.minHeartRateAlertBPM) { _, _ in
-            syncHeartRateAlertStateToWatch()
-        }
-        .onChange(of: store.maxHeartRateAlertBPM) { _, _ in
-            syncHeartRateAlertStateToWatch()
-        }
-        .onChange(of: watchSync.isPaired) { _, _ in
-            scheduleWatchInstallReminderIfNeeded()
-        }
-        .onChange(of: watchSync.isWatchAppInstalled) { _, _ in
-            scheduleWatchInstallReminderIfNeeded()
-        }
-        .onReceive(NotificationCenter.default.publisher(for: SaunaLogLocalNotificationManager.routeNotificationName)) { notification in
-            guard let route = notification.object as? SaunaLogLocalNotificationManager.Route else { return }
-            handleNotificationRoute(route)
-        }
-        .alert(L10n.string("timer.edit.alert_title"), isPresented: Binding(
+        )
+    }
+
+    private var deleteFailureAlertText: String {
+        deleteFailureMessage ?? ""
+    }
+
+    private var editingAlertPresented: Binding<Bool> {
+        Binding(
             get: { editingPresetIndex != nil },
             set: { isPresented in
                 if !isPresented {
                     editingPresetIndex = nil
                 }
             }
-        )) {
-            TextField(L10n.string("timer.edit.minutes_placeholder"), text: $editingMinutesInput)
-                .keyboardType(.numberPad)
+        )
+    }
 
-            Button(L10n.string("actions.save")) {
-                saveEditedPreset()
-            }
+    private var rootPage: AnyView {
+        if showingSupport {
+            return AnyView(supportPage)
+        } else if showingInsights {
+            return AnyView(insightsPage)
+        } else {
+            return AnyView(mainPage)
+        }
+    }
 
-            Button(L10n.string("actions.cancel"), role: .cancel) {}
-        } message: {
-            Text("timer.edit.message")
-        }
-        .alert(L10n.string("history.delete.alert_title"), isPresented: $showingDeleteConfirmation, presenting: pendingDeletionSession) { session in
-            Button(L10n.string("actions.delete"), role: .destructive) {
-                Task {
-                    await MainActor.run {
-                        withAnimation(.easeInOut(duration: 0.2)) {
-                            store.deleteSession(session)
-                        }
-                        pendingDeletionSession = nil
-                    }
+    var body: some View {
+        configuredRootPage
+    }
 
-                    do {
-                        try await health.requestAuthorization()
-                        try await health.deleteSessionFromHealth(session)
-                    } catch {
-                        let nsError = error as NSError
-                        await MainActor.run {
-                            deleteFailureMessage = L10n.format(
-                                "history.delete.health_failed",
-                                nsError.domain,
-                                nsError.code,
-                                nsError.localizedDescription
-                            )
-                        }
-                    }
-                }
+    private var configuredRootPage: some View {
+        let page = AnyView(rootPage)
+        let framed = AnyView(page.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top))
+        let appeared = AnyView(framed.onAppear { handleHomeAppear() })
+        let trialChanged = AnyView(appeared.onChange(of: trial.lifetimeSessionsCompleted) { _, _ in handleTrialLifetimeChange() })
+        let unlockChanged = AnyView(trialChanged.onChange(of: trial.hasUnlocked) { _, _ in handleTrialUnlockChange() })
+        let presetsChanged = AnyView(unlockChanged.onChange(of: store.presets) { _, _ in handlePresetChange() })
+        let sessionsChanged = AnyView(presetsChanged.onChange(of: store.recentSessions.count) { _, _ in handleRecentSessionsChange() })
+        let selectedChanged = AnyView(sessionsChanged.onChange(of: store.selectedPresetSeconds) { _, _ in handleSelectedPresetChange() })
+        let minChanged = AnyView(selectedChanged.onChange(of: store.minHeartRateAlertBPM) { _, _ in handleHeartRateAlertChange() })
+        let maxChanged = AnyView(minChanged.onChange(of: store.maxHeartRateAlertBPM) { _, _ in handleHeartRateAlertChange() })
+        let pairedChanged = AnyView(maxChanged.onChange(of: watchSync.isPaired) { _, _ in scheduleWatchInstallReminderIfNeeded() })
+        let installedChanged = AnyView(pairedChanged.onChange(of: watchSync.isWatchAppInstalled) { _, _ in scheduleWatchInstallReminderIfNeeded() })
+        let routed = AnyView(installedChanged.modifier(RouteNotificationModifier { route in handleNotificationRoute(route) }))
+        let timerEditing = AnyView(routed.modifier(TimerEditAlertModifier(isPresented: editingAlertPresented, input: $editingMinutesInput, onSave: { saveEditedPreset() })))
+        let deleteConfirmation = AnyView(timerEditing.alert(isPresented: $showingDeleteConfirmation) {
+            Alert(
+                title: Text(verbatim: L10n.string("history.delete.alert_title")),
+                message: Text(verbatim: deleteConfirmationMessage),
+                primaryButton: .destructive(Text(verbatim: L10n.string("actions.delete")), action: confirmDeletePendingSession),
+                secondaryButton: .cancel(Text(verbatim: L10n.string("actions.cancel")), action: { pendingDeletionSession = nil })
+            )
+        })
+        return AnyView(deleteConfirmation.alert(isPresented: deleteFailureAlertPresented) {
+            Alert(
+                title: Text(verbatim: L10n.string("history.delete.failed_title")),
+                message: Text(verbatim: deleteFailureAlertText),
+                dismissButton: .default(Text(verbatim: L10n.string("actions.ok")), action: { deleteFailureMessage = nil })
+            )
+        })
+    }
+
+    private func deleteSession(_ session: HeatSession) async {
+        await MainActor.run {
+            withAnimation(.easeInOut(duration: 0.2)) {
+                store.deleteSession(session)
             }
-            Button(L10n.string("actions.cancel"), role: .cancel) {
-                pendingDeletionSession = nil
-            }
-        } message: { session in
-            Text(L10n.format("history.delete.message", session.activityType.displayName.lowercased()))
+            pendingDeletionSession = nil
         }
-        .alert(L10n.string("history.delete.failed_title"), isPresented: Binding(get: { deleteFailureMessage != nil }, set: { if !$0 { deleteFailureMessage = nil } })) {
-            Button(L10n.string("actions.ok"), role: .cancel) {
-                deleteFailureMessage = nil
+
+        do {
+            try await health.requestAuthorization()
+            try await health.deleteSessionFromHealth(session)
+        } catch {
+            let nsError = error as NSError
+            let message = L10n.format(
+                "history.delete.health_failed",
+                nsError.domain,
+                nsError.code,
+                nsError.localizedDescription
+            )
+            await MainActor.run {
+                deleteFailureMessage = message
             }
-        } message: {
-            Text(deleteFailureMessage ?? "")
         }
+    }
+
+    private func handleTrialLifetimeChange() {
+        maybePromptForReview()
+        syncTrialStateToWatch()
+    }
+
+    private func handleHomeAppear() {
+        if !hasCountedLaunch {
+            launchCount += 1
+            hasCountedLaunch = true
+        }
+        watchSync.refreshStatus()
+        scheduleWatchInstallReminderIfNeeded()
+        maybePromptForReview()
+        syncTrialStateToWatch()
+        syncPresetStateToWatch()
+        syncHeartRateAlertStateToWatch()
+    }
+
+    private func handleTrialUnlockChange() {
+        syncTrialStateToWatch()
+    }
+
+    private func handlePresetChange() {
+        syncPresetStateToWatch()
+    }
+
+    private func handleRecentSessionsChange() {
+        maybePromptForReview()
+    }
+
+    private func handleSelectedPresetChange() {
+        syncPresetStateToWatch()
+    }
+
+    private func handleHeartRateAlertChange() {
+        syncHeartRateAlertStateToWatch()
+    }
+
+    private func confirmDeletePendingSession() {
+        guard let session = pendingDeletionSession else { return }
+        Task { await deleteSession(session) }
     }
 
     private var mainPage: some View {
@@ -749,6 +808,8 @@ struct HomeView: View {
                             Button(role: .destructive) {
                                 softTap()
                                 pendingDeletionSession = session
+                                let activityName = session.activityType.displayName.lowercased()
+                                deleteConfirmationMessage = L10n.format("history.delete.message", activityName)
                                 showingDeleteConfirmation = true
                             } label: {
                                 Label(L10n.string("actions.delete"), systemImage: "trash")
