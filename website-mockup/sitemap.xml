@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://saunalogapp.com/</loc></url>
-  <url><loc>https://saunalogapp.com/features</loc></url>
-  <url><loc>https://saunalogapp.com/apple-watch</loc></url>
+  <url><loc>https://saunalogapp.com/</loc><lastmod>2026-08-22</lastmod></url>
+  <url><loc>https://saunalogapp.com/features</loc><lastmod>2026-08-22</lastmod></url>
+  <url><loc>https://saunalogapp.com/apple-watch</loc><lastmod>2026-08-22</lastmod></url>
   <url><loc>https://saunalogapp.com/insights</loc></url>
-  <url><loc>https://saunalogapp.com/faq</loc></url>
+  <url><loc>https://saunalogapp.com/faq</loc><lastmod>2026-08-22</lastmod></url>
   <url><loc>https://saunalogapp.com/support</loc></url>
 </urlset>
