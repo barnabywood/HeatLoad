@@ -508,6 +508,71 @@ public final class HealthKitManager: NSObject, ObservableObject {
         (0, 0, 0, 0)
     }
 
+    public func importSessionToHealth(_ session: HeatSession) async throws {
+        guard HKHealthStore.isHealthDataAvailable() else { return }
+
+        let configuration = HKWorkoutConfiguration()
+        // HealthKit has no native sauna or steam-room activity type.
+        configuration.activityType = .preparationAndRecovery
+        configuration.locationType = .indoor
+        let builder = HKWorkoutBuilder(healthStore: healthStore, configuration: configuration, device: .local())
+
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            builder.beginCollection(withStart: session.startDate) { _, error in
+                if let error { continuation.resume(throwing: error) }
+                else { continuation.resume(returning: ()) }
+            }
+        }
+
+        var metadata: [String: Any] = [
+            Self.metadataHeatActivityKey: session.activityType.rawValue,
+            Self.metadataColdShowerKey: session.hadColdShower,
+            "com.heatload.activityDisplayName": session.activityType.displayName,
+            "com.heatload.plannedDurationSeconds": session.plannedDurationSeconds,
+            "com.heatload.averageHeartRate": session.averageHeartRate,
+            "com.heatload.maxHeartRate": session.maxHeartRate,
+            "com.heatload.totalCalories": session.totalCalories,
+            HKMetadataKeyWorkoutBrandName: L10n.format("health.workout_brand_name", session.activityType.displayName),
+            HKMetadataKeyIndoorWorkout: true
+        ]
+        if let temperature = session.temperatureCelsius { metadata["com.heatload.temperatureCelsius"] = temperature }
+        if let humidity = session.humidityPercent { metadata["com.heatload.humidityPercent"] = humidity }
+        if let environmentWasDefault = session.environmentWasDefault { metadata["com.heatload.environmentWasDefault"] = environmentWasDefault }
+
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            builder.addMetadata(metadata) { _, error in
+                if let error { continuation.resume(throwing: error) }
+                else { continuation.resume(returning: ()) }
+            }
+        }
+
+        if session.activeCalories > 0,
+           let energyType = HKObjectType.quantityType(forIdentifier: .activeEnergyBurned) {
+            let quantity = HKQuantity(unit: .kilocalorie(), doubleValue: session.activeCalories)
+            let sample = HKQuantitySample(type: energyType, quantity: quantity, start: session.startDate, end: session.endDate)
+            try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+                builder.add([sample]) { _, error in
+                    if let error { continuation.resume(throwing: error) }
+                    else { continuation.resume(returning: ()) }
+                }
+            }
+        }
+
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            builder.endCollection(withEnd: session.endDate) { _, error in
+                if let error { continuation.resume(throwing: error) }
+                else { continuation.resume(returning: ()) }
+            }
+        }
+
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            builder.finishWorkout { _, error in
+                if let error { continuation.resume(throwing: error) }
+                else { continuation.resume(returning: ()) }
+            }
+        }
+    }
+
     public func fetchRecentSessions(limit: Int = 100) async throws -> [HeatSession] {
         guard HKHealthStore.isHealthDataAvailable() else { return [] }
 

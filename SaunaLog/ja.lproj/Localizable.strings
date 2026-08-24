@@ -82,7 +82,8 @@
 "support.sync_unlock_watch" = "解除状態をWatchへ同期";
 "support.view" = "表示";
 "support.version_format" = "バージョン %@ (%@)";
-"support.watch_tip.body" = "アラート後に戻りやすくするには: iPhoneのWatchアプリ > 一般 > 時計に戻る > Sauna Log > Appに戻る。";
+"support.watch_tip.apple" = "Apple Watch: アラート後に戻りやすくするには、iPhoneのWatchアプリ > 一般 > 時計に戻る > Sauna Log。";
+"support.watch_tip.garmin" = "Garmin: Garmin Connect IQからSauna Logをインストールし、iPhoneを近くに置いて一度開きます。";
 "support.watch_tip.title" = "Watchのヒント";
 "timer.edit.alert_title" = "タイマーを編集";
 "timer.edit.message" = "タイマーの長さを分で設定します。";
@@ -159,6 +160,11 @@
 
 "insights.metric.heat_load" = "ヒート負荷";
 
-"history.row.environment" = "%d°C · luftfuktighet %d%%";
+"history.row.environment" = "%@ · luftfuktighet %d%%";
 
-"history.row.environment_default" = "%d°C · 湿度 %d%%（デフォルト）";
+"history.row.environment_default" = "%@ · 湿度 %d%%（デフォルト）";
+
+"temperature.unit.celsius" = "摂氏";
+"temperature.unit.fahrenheit" = "華氏";
+"settings.temperature_unit.title" = "摂氏と華氏を選択";
+"settings.temperature_unit.subtitle" = "iPhoneとApple Watchの温度表示。";

@@ -258,10 +258,10 @@ struct WatchHomeView: View {
                     .fixedSize(horizontal: false, vertical: true)
 
                 compactPanel {
-                    Stepper(value: $editingTemperatureCelsius, in: 0...120, step: 1) {
+                    Stepper(value: editingTemperatureDisplayBinding, in: store.temperatureUnit.displayRange, step: 1) {
                         environmentStepperLabel(
                             titleKey: "session.temperature",
-                            value: "\(Int(editingTemperatureCelsius.rounded()))°C"
+                            value: store.temperatureUnit.format(celsius: editingTemperatureCelsius)
                         )
                     }
 
@@ -303,7 +303,7 @@ struct WatchHomeView: View {
     }
 
     private var environmentSummary: String {
-        let temperature = store.currentTemperatureCelsius.map { "\(Int($0.rounded()))°C" } ?? "--"
+        let temperature = store.currentTemperatureCelsius.map { store.formatTemperature($0) } ?? "--"
         let humidity = store.currentHumidityPercent.map { "\(Int($0.rounded()))%" } ?? "--"
         return "\(temperature) · \(humidity)"
     }
@@ -313,6 +313,13 @@ struct WatchHomeView: View {
         editingHumidityPercent = store.currentHumidityPercent ?? store.environmentalDefaults(for: store.selectedActivity).humidityPercent
         showingEnvironmentEditor = true
         WKInterfaceDevice.current().play(.click)
+    }
+
+    private var editingTemperatureDisplayBinding: Binding<Double> {
+        Binding(
+            get: { store.temperatureUnit.displayValue(fromCelsius: editingTemperatureCelsius) },
+            set: { editingTemperatureCelsius = store.temperatureUnit.celsiusValue(fromDisplay: $0) }
+        )
     }
 
     private func environmentStepperLabel(titleKey: String, value: String) -> some View {

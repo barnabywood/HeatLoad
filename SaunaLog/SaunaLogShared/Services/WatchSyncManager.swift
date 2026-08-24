@@ -12,6 +12,7 @@ public final class WatchSyncManager: NSObject, ObservableObject {
         static let selectedPresetSeconds = "selectedPresetSeconds"
         static let minHeartRateAlertBPM = "minHeartRateAlertBPM"
         static let maxHeartRateAlertBPM = "maxHeartRateAlertBPM"
+        static let temperatureUnit = "temperatureUnit"
         static let trialStateRequest = "trialStateRequest"
     }
 
@@ -35,6 +36,7 @@ public final class WatchSyncManager: NSObject, ObservableObject {
     public var onTrialProgressRequested: (() -> Void)?
     public var onPresetsReceived: (([Int], Int) -> Void)?
     public var onHeartRateAlertsReceived: ((Int?, Int?) -> Void)?
+    public var onTemperatureUnitReceived: ((TemperatureUnit) -> Void)?
 
     private let session = WCSession.default
 
@@ -199,6 +201,26 @@ public final class WatchSyncManager: NSObject, ObservableObject {
             }
         }
     }
+
+    public func sendTemperatureUnit(_ unit: TemperatureUnit) {
+        guard WCSession.isSupported() else { return }
+
+        let message: [String: Any] = [Keys.temperatureUnit: unit.rawValue]
+
+        do {
+            var context = session.applicationContext
+            context[Keys.temperatureUnit] = unit.rawValue
+            try session.updateApplicationContext(context)
+        } catch {
+            // The next activation will retry through application context.
+        }
+
+        if session.isReachable {
+            session.sendMessage(message, replyHandler: nil) { _ in }
+        }
+        session.transferUserInfo(message)
+    }
+
 }
 
 extension WatchSyncManager: WCSessionDelegate {
@@ -272,6 +294,13 @@ extension WatchSyncManager: WCSessionDelegate {
             let maxValue = maxRaw > 0 ? maxRaw : nil
             publishOnMain {
                 self.onHeartRateAlertsReceived?(minValue, maxValue)
+            }
+        }
+
+        if let rawValue = context[Keys.temperatureUnit] as? String,
+           let unit = TemperatureUnit(rawValue: rawValue) {
+            publishOnMain {
+                self.onTemperatureUnitReceived?(unit)
             }
         }
     }

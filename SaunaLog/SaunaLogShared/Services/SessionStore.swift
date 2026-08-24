@@ -14,6 +14,7 @@ public final class SessionStore: ObservableObject {
         static let saunaHumidityPercent = "session.environment.sauna.humidityPercent"
         static let steamTemperatureCelsius = "session.environment.steam.temperatureCelsius"
         static let steamHumidityPercent = "session.environment.steam.humidityPercent"
+        static let temperatureUnit = "session.environment.temperatureUnit"
         static let deletedSessionIDs = "session.deleted.ids"
         static let deletedSessionSignatures = "session.deleted.signatures"
     }
@@ -30,6 +31,7 @@ public final class SessionStore: ObservableObject {
     @Published public private(set) var deletedSessions: [HeatSession] = []
     @Published public private(set) var minHeartRateAlertBPM: Int?
     @Published public private(set) var maxHeartRateAlertBPM: Int?
+    @Published public private(set) var temperatureUnit: TemperatureUnit
     @Published public private(set) var currentTemperatureCelsius: Double?
     @Published public private(set) var currentHumidityPercent: Double?
     @Published public private(set) var currentEnvironmentWasEdited = false
@@ -64,6 +66,7 @@ public final class SessionStore: ObservableObject {
         self.selectedPresetSeconds = initialSelected
         self.countdownRemainingSeconds = initialSelected
         self.currentPlannedDurationSeconds = initialSelected
+        self.temperatureUnit = TemperatureUnit(rawValue: defaults.string(forKey: Keys.temperatureUnit) ?? "") ?? .celsius
 
         let storedDeletedIDStrings = defaults.stringArray(forKey: Keys.deletedSessionIDs) ?? []
         self.deletedSessionIDs = Set(storedDeletedIDStrings.compactMap(UUID.init(uuidString:)))
@@ -82,6 +85,7 @@ public final class SessionStore: ObservableObject {
 
         persistPresets()
         persistHeartRateAlerts()
+        persistTemperatureUnit()
         persistDeletedSessions()
         persistRecentSessions()
         persistDeletedArchive()
@@ -89,6 +93,16 @@ public final class SessionStore: ObservableObject {
 
     public var isSessionActive: Bool {
         activeSessionStart != nil
+    }
+
+    public func setTemperatureUnit(_ unit: TemperatureUnit) {
+        guard temperatureUnit != unit else { return }
+        temperatureUnit = unit
+        persistTemperatureUnit()
+    }
+
+    public func formatTemperature(_ celsius: Double) -> String {
+        temperatureUnit.format(celsius: celsius)
     }
 
     public func environmentalDefaults(for activity: HeatActivityType) -> (temperatureCelsius: Double, humidityPercent: Double) {
@@ -316,6 +330,10 @@ public final class SessionStore: ObservableObject {
     private func persistHeartRateAlerts() {
         defaults.set(minHeartRateAlertBPM ?? 0, forKey: Keys.minHeartRateAlertBPM)
         defaults.set(maxHeartRateAlertBPM ?? 0, forKey: Keys.maxHeartRateAlertBPM)
+    }
+
+    private func persistTemperatureUnit() {
+        defaults.set(temperatureUnit.rawValue, forKey: Keys.temperatureUnit)
     }
 
     private func persistDeletedSessions() {

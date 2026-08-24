@@ -1,5 +1,48 @@
 import Foundation
 
+public enum TemperatureUnit: String, CaseIterable, Codable, Identifiable {
+    case celsius
+    case fahrenheit
+
+    public var id: String { rawValue }
+
+    public var symbol: String {
+        switch self {
+        case .celsius: return "°C"
+        case .fahrenheit: return "°F"
+        }
+    }
+
+    public var localizedName: String {
+        L10n.string(self == .celsius ? "temperature.unit.celsius" : "temperature.unit.fahrenheit")
+    }
+
+    public var displayRange: ClosedRange<Double> {
+        switch self {
+        case .celsius: return 0...120
+        case .fahrenheit: return 32...248
+        }
+    }
+
+    public func displayValue(fromCelsius celsius: Double) -> Double {
+        switch self {
+        case .celsius: return celsius
+        case .fahrenheit: return celsius * 9 / 5 + 32
+        }
+    }
+
+    public func celsiusValue(fromDisplay value: Double) -> Double {
+        switch self {
+        case .celsius: return value
+        case .fahrenheit: return (value - 32) * 5 / 9
+        }
+    }
+
+    public func format(celsius: Double) -> String {
+        "\(Int(displayValue(fromCelsius: celsius).rounded()))\(symbol)"
+    }
+}
+
 public enum HeatActivityType: String, CaseIterable, Codable, Identifiable {
     case sauna
     case steamRoom

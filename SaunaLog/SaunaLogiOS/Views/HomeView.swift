@@ -47,6 +47,7 @@ struct HomeView: View {
     @StateObject private var health = HealthKitManager()
 
     @ObservedObject private var watchSync = WatchSyncManager.shared
+    @ObservedObject private var garmin = GarminCompanionManager.shared
 
     @State private var editingPresetIndex: Int?
     @State private var editingMinutesInput = ""
@@ -134,9 +135,16 @@ struct HomeView: View {
         let selectedChanged = AnyView(sessionsChanged.onChange(of: store.selectedPresetSeconds) { _, _ in handleSelectedPresetChange() })
         let minChanged = AnyView(selectedChanged.onChange(of: store.minHeartRateAlertBPM) { _, _ in handleHeartRateAlertChange() })
         let maxChanged = AnyView(minChanged.onChange(of: store.maxHeartRateAlertBPM) { _, _ in handleHeartRateAlertChange() })
-        let pairedChanged = AnyView(maxChanged.onChange(of: watchSync.isPaired) { _, _ in scheduleWatchInstallReminderIfNeeded() })
+        let temperatureChanged = AnyView(maxChanged.onChange(of: store.temperatureUnit) { _, _ in handleTemperatureUnitChange() })
+        let pairedChanged = AnyView(temperatureChanged.onChange(of: watchSync.isPaired) { _, _ in scheduleWatchInstallReminderIfNeeded() })
         let installedChanged = AnyView(pairedChanged.onChange(of: watchSync.isWatchAppInstalled) { _, _ in scheduleWatchInstallReminderIfNeeded() })
-        let routed = AnyView(installedChanged.modifier(RouteNotificationModifier { route in handleNotificationRoute(route) }))
+        let garminChanged = AnyView(installedChanged.onChange(of: garmin.hasSelectedDevice) { _, _ in
+            GarminCompanionManager.shared.sendEntitlement(
+                sessionsCompleted: trial.sessionsCompleted,
+                hasUnlocked: trial.hasUnlocked
+            )
+        })
+        let routed = AnyView(garminChanged.modifier(RouteNotificationModifier { route in handleNotificationRoute(route) }))
         let timerEditing = AnyView(routed.modifier(TimerEditAlertModifier(isPresented: editingAlertPresented, input: $editingMinutesInput, onSave: { saveEditedPreset() })))
         let deleteConfirmation = AnyView(timerEditing.alert(isPresented: $showingDeleteConfirmation) {
             Alert(
@@ -196,6 +204,7 @@ struct HomeView: View {
         syncTrialStateToWatch()
         syncPresetStateToWatch()
         syncHeartRateAlertStateToWatch()
+        syncTemperatureUnitToWatch()
     }
 
     private func handleTrialUnlockChange() {
@@ -216,6 +225,10 @@ struct HomeView: View {
 
     private func handleHeartRateAlertChange() {
         syncHeartRateAlertStateToWatch()
+    }
+
+    private func handleTemperatureUnitChange() {
+        syncTemperatureUnitToWatch()
     }
 
     private func confirmDeletePendingSession() {
@@ -380,6 +393,48 @@ struct HomeView: View {
                 .foregroundStyle(.white.opacity(0.84))
         }
         .panelStyle()
+    }
+
+    private var temperatureUnitToggle: some View {
+        HStack(spacing: 12) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("settings.temperature_unit.title")
+                    .font(AppTheme.accentFont(14))
+
+                Text("settings.temperature_unit.subtitle")
+                    .font(AppTheme.bodyFont(12))
+                    .foregroundStyle(.white.opacity(0.76))
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            Spacer(minLength: 8)
+
+            Button {
+                store.setTemperatureUnit(store.temperatureUnit == .celsius ? .fahrenheit : .celsius)
+                softTap()
+            } label: {
+                HStack(spacing: 0) {
+                    temperatureUnitOption("C", selected: store.temperatureUnit == .celsius)
+                    temperatureUnitOption("F", selected: store.temperatureUnit == .fahrenheit)
+                }
+                .padding(3)
+                .background(.white.opacity(0.12), in: Capsule())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(L10n.string("settings.temperature_unit.title"))
+            .accessibilityValue(store.temperatureUnit.symbol)
+            .accessibilityHint(L10n.string("settings.temperature_unit.subtitle"))
+        }
+        .padding(10)
+        .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+    }
+
+    private func temperatureUnitOption(_ label: String, selected: Bool) -> some View {
+        Text(label)
+            .font(AppTheme.accentFont(13))
+            .foregroundStyle(selected ? AppTheme.charcoal : .white.opacity(0.82))
+            .frame(width: 30, height: 28)
+            .background(selected ? AppTheme.steam : .clear, in: Capsule())
     }
 
     private var watchStatusDetail: String {
@@ -648,6 +703,7 @@ struct HomeView: View {
             Text("support.section_title")
                 .font(AppTheme.accentFont(16))
 
+            temperatureUnitToggle
             monthlyInsightsNotificationToggle
 
             LinkRow(titleKey: "support.privacy_policy", subtitleKey: "support.view", destination: privacyPolicyURL)
@@ -675,11 +731,34 @@ struct HomeView: View {
             .buttonStyle(.plain)
             .disabled(purchase.isLoadingProducts)
 
+            Button {
+                softTap()
+                garmin.installOrConnect()
+            } label: {
+                HStack {
+                    Text(garmin.hasSelectedDevice
+                         ? (garmin.isAppInstalled ? L10n.string("garmin.sync_unlock") : L10n.string("garmin.install_app"))
+                         : L10n.string("garmin.connect_watch"))
+                        .font(AppTheme.accentFont(14))
+                        .fixedSize(horizontal: false, vertical: true)
+                    Spacer()
+                    Image(systemName: "dot.radiowaves.left.and.right")
+                        .foregroundStyle(AppTheme.steam)
+                }
+                .padding(10)
+                .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+            }
+            .buttonStyle(.plain)
+
             VStack(alignment: .leading, spacing: 4) {
                 Text("support.watch_tip.title")
                     .font(AppTheme.accentFont(13))
                     .foregroundStyle(.white)
-                Text("support.watch_tip.body")
+                Text("support.watch_tip.apple")
+                    .font(AppTheme.bodyFont(12))
+                    .foregroundStyle(.white.opacity(0.82))
+                    .fixedSize(horizontal: false, vertical: true)
+                Text("support.watch_tip.garmin")
                     .font(AppTheme.bodyFont(12))
                     .foregroundStyle(.white.opacity(0.82))
                     .fixedSize(horizontal: false, vertical: true)
@@ -789,7 +868,7 @@ struct HomeView: View {
                             if let temperature = session.temperatureCelsius, let humidity = session.humidityPercent {
                                 Text(L10n.format(
                                     session.environmentWasDefault == true ? "history.row.environment_default" : "history.row.environment",
-                                    Int(temperature.rounded()),
+                                    store.formatTemperature(temperature),
                                     Int(humidity.rounded())
                                 ))
                                     .font(AppTheme.bodyFont(12))
@@ -1260,6 +1339,10 @@ struct HomeView: View {
 
     private func syncHeartRateAlertStateToWatch() {
         WatchSyncManager.shared.sendHeartRateAlerts(min: store.minHeartRateAlertBPM, max: store.maxHeartRateAlertBPM)
+    }
+
+    private func syncTemperatureUnitToWatch() {
+        WatchSyncManager.shared.sendTemperatureUnit(store.temperatureUnit)
     }
 
     private func scheduleWatchInstallReminderIfNeeded() {

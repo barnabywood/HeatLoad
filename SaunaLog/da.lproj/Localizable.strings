@@ -82,7 +82,8 @@
 "support.sync_unlock_watch" = "Synk oplåsning til ur";
 "support.view" = "Vis";
 "support.version_format" = "Version %@ (%@)";
-"support.watch_tip.body" = "For hurtigere tilbagevenden efter advarsler: Watch-appen på iPhone > Generelt > Tilbage til urskive > Sauna Log > Tilbage til app.";
+"support.watch_tip.apple" = "Apple Watch: Gør det nemmere at vende tilbage efter advarsler via Watch-appen på iPhone > Generelt > Tilbage til urskive > Sauna Log.";
+"support.watch_tip.garmin" = "Garmin: Installer Sauna Log fra Garmin Connect IQ, og åbn den én gang, mens din iPhone er i nærheden.";
 "support.watch_tip.title" = "Urtip";
 "timer.edit.alert_title" = "Rediger timer";
 "timer.edit.message" = "Angiv timerlængden i minutter.";
@@ -159,6 +160,11 @@
 
 "insights.metric.heat_load" = "Varmebelastning";
 
-"history.row.environment" = "%d°C · %d%% luftfugtighed";
+"history.row.environment" = "%@ · %d%% luftfugtighed";
 
-"history.row.environment_default" = "%d°C · %d%% luftfugtighed (standard)";
+"history.row.environment_default" = "%@ · %d%% luftfugtighed (standard)";
+
+"temperature.unit.celsius" = "Celsius";
+"temperature.unit.fahrenheit" = "Fahrenheit";
+"settings.temperature_unit.title" = "Vælg Celsius eller Fahrenheit";
+"settings.temperature_unit.subtitle" = "Temperaturvisning på iPhone og Apple Watch.";
