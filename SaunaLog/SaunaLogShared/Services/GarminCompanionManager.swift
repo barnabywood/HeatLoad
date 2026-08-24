@@ -1,7 +1,7 @@
 import Foundation
 import Combine
 
-#if canImport(ConnectIQ)
+#if canImport(ConnectIQ) && !targetEnvironment(simulator)
 import ConnectIQ
 #endif
 
@@ -26,7 +26,7 @@ public final class GarminCompanionManager: NSObject, ObservableObject {
 
     public var onSessionReceived: ((HeatSession) -> Void)?
 
-#if canImport(ConnectIQ)
+#if canImport(ConnectIQ) && !targetEnvironment(simulator)
     private let connectIQ = ConnectIQ.sharedInstance()!
     private var devices: [IQDevice] = []
 #endif
@@ -36,7 +36,7 @@ public final class GarminCompanionManager: NSObject, ObservableObject {
     }
 
     public func activate() {
-#if canImport(ConnectIQ)
+#if canImport(ConnectIQ) && !targetEnvironment(simulator)
         connectIQ.initialize(
             withUrlScheme: "saunalog-ciq",
             uiOverrideDelegate: nil,
@@ -50,20 +50,20 @@ public final class GarminCompanionManager: NSObject, ObservableObject {
     }
 
     public func requestDeviceSelection() {
-#if canImport(ConnectIQ)
+#if canImport(ConnectIQ) && !targetEnvironment(simulator)
         connectIQ.showDeviceSelection()
 #endif
     }
 
     public func refresh() {
-#if canImport(ConnectIQ)
+#if canImport(ConnectIQ) && !targetEnvironment(simulator)
         guard let device = devices.first else { return }
         refreshAppStatus(for: device)
 #endif
     }
 
     public func installOrConnect() {
-#if canImport(ConnectIQ)
+#if canImport(ConnectIQ) && !targetEnvironment(simulator)
         guard let device = devices.first else {
             requestDeviceSelection()
             return
@@ -78,7 +78,7 @@ public final class GarminCompanionManager: NSObject, ObservableObject {
     }
 
     public func handleOpenURL(_ url: URL) {
-#if canImport(ConnectIQ)
+#if canImport(ConnectIQ) && !targetEnvironment(simulator)
         guard let selected = connectIQ.parseDeviceSelectionResponse(from: url) as? [IQDevice],
               let device = selected.first else { return }
 
@@ -95,7 +95,7 @@ public final class GarminCompanionManager: NSObject, ObservableObject {
     }
 
     public func sendEntitlement(sessionsCompleted: Int, hasUnlocked: Bool) {
-#if canImport(ConnectIQ)
+#if canImport(ConnectIQ) && !targetEnvironment(simulator)
         guard let device = devices.first else { return }
         let app = IQApp(uuid: Self.appUUID, store: Self.storeUUID, device: device)
         let message: [String: Any] = [
@@ -112,7 +112,7 @@ public final class GarminCompanionManager: NSObject, ObservableObject {
 #endif
     }
 
- #if canImport(ConnectIQ)
+#if canImport(ConnectIQ) && !targetEnvironment(simulator)
     private func saveDevices(_ devices: [IQDevice]) {
         guard let data = try? NSKeyedArchiver.archivedData(
             withRootObject: devices,
@@ -146,7 +146,7 @@ public final class GarminCompanionManager: NSObject, ObservableObject {
     }
 #endif
 
-#if canImport(ConnectIQ)
+#if canImport(ConnectIQ) && !targetEnvironment(simulator)
     private func refreshAppStatus(for device: IQDevice) {
         let app = IQApp(uuid: Self.appUUID, store: Self.storeUUID, device: device)
         connectIQ.getAppStatus(app) { [weak self] status in
@@ -159,7 +159,7 @@ public final class GarminCompanionManager: NSObject, ObservableObject {
 #endif
 }
 
-#if canImport(ConnectIQ)
+#if canImport(ConnectIQ) && !targetEnvironment(simulator)
 extension GarminCompanionManager: IQDeviceEventDelegate, IQAppMessageDelegate {
     public func deviceStatusChanged(_ device: IQDevice, status: IQDeviceStatus) {
         Task { @MainActor [weak self] in

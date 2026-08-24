@@ -8,7 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		B4A7A5912F3CF653002FEA11 /* SaunaLogWatchApp Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = B4A7A5872F3CF653002FEA11 /* SaunaLogWatchApp Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		C1A7A0012F3CF805002FEA11 /* ConnectIQ in Frameworks */ = {isa = PBXBuildFile; productRef = C1A7A0032F3CF805002FEA11 /* ConnectIQ */; };
+		C1A7A0012F3CF805002FEA11 /* ConnectIQ in Frameworks */ = {isa = PBXBuildFile; productRef = C1A7A0032F3CF805002FEA11 /* ConnectIQ */; settings = {ATTRIBUTES = (Weak, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
