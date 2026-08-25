@@ -72,6 +72,7 @@
 "support.email.subject" = "Sauna Log Support";
 "support.feature_request.subject" = "Sauna Log Funktionswunsch";
 "support.leave_review" = "Bewertung schreiben";
+"support.website" = "Website";
 "support.privacy_policy" = "Datenschutz";
 "support.privacy_policy_url" = "https://barnabywood.github.io/HeatLoad/privacy-policy.html";
 "support.request_feature" = "Funktion wünschen";
@@ -81,7 +82,8 @@
 "support.sync_unlock_watch" = "Freischaltung mit Watch synchronisieren";
 "support.view" = "Ansehen";
 "support.version_format" = "Version %@ (%@)";
-"support.watch_tip.body" = "Für schnellere Rückkehr nach Hinweisen: Watch-App auf dem iPhone > Allgemein > Zur Uhr zurück > Sauna Log > Zur App zurück.";
+"support.watch_tip.apple" = "Apple Watch: Sauna Log nach Hinweisen schneller öffnen: Watch-App auf dem iPhone > Allgemein > Zur Uhr zurück > Sauna Log.";
+"support.watch_tip.garmin" = "Garmin: Sauna Log über Garmin Connect IQ installieren und einmal öffnen, während das iPhone in der Nähe ist.";
 "support.watch_tip.title" = "Watch-Tipp";
 "timer.edit.alert_title" = "Timer bearbeiten";
 "timer.edit.message" = "Lege die Timerlänge in Minuten fest.";
@@ -157,3 +159,16 @@
 "settings.monthly_insights_notifications.subtitle" = "Benachrichtige mich, wenn Monats-Einblicke bereit sind.";
 
 "insights.metric.heat_load" = "Hitzelast";
+
+"history.row.environment" = "%@ · %d%% Luftfeuchtigkeit";
+
+"history.row.environment_default" = "%@ · %d%% Luftfeuchtigkeit (Standard)";
+
+"temperature.unit.celsius" = "Celsius";
+"temperature.unit.fahrenheit" = "Fahrenheit";
+"settings.temperature_unit.title" = "Zwischen Celsius und Fahrenheit wählen";
+"settings.temperature_unit.subtitle" = "Temperaturanzeige auf iPhone und Apple Watch.";
+
+"garmin.connect_watch" = "Garmin-Uhr verbinden";
+"garmin.install_app" = "Garmin-App installieren";
+"garmin.sync_unlock" = "Freischaltung mit Garmin synchronisieren";

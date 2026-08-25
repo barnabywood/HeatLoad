@@ -87,6 +87,10 @@ struct SaunaLogWatchApp: App {
             store.replacePresets(presets, preferredSelected: selectedPreset)
         }
 
+        WatchSyncManager.shared.onTemperatureUnitReceived = { unit in
+            store.setTemperatureUnit(unit)
+        }
+
         requestTrialSyncIfLocked()
         WatchSyncManager.shared.sendTrialProgress(
             sessionsCompleted: trial.sessionsCompleted,

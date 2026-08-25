@@ -131,8 +131,23 @@
 "guidance.settling_in.title" = "慣らし中";
 "guidance.settling_in.detail" = "ゆっくり熱に慣れましょう。";
 "guidance.steady.title" = "安定";
-"guidance.steady.detail" = "楽に呼吸を続けましょう。";
 "guidance.high_strain.title" = "高負荷";
 "guidance.high_strain.detail" = "退室を考えましょう。";
 "guidance.cool_down_soon.title" = "そろそろ冷却";
 "guidance.cool_down_soon.detail" = "セッションはもうすぐ終了です。";
+
+"session.heat_conditions" = "熱";
+"session.heat_conditions.detail" = "このセッションの値を調整します。熱の種類ごとに保存されます。";
+"session.temperature" = "温度";
+"session.humidity" = "湿度";
+
+"guidance.building.title" = "上昇中";
+"guidance.building.detail" = "心拍数がこのセッションの開始値を上回っています。";
+"guidance.above_usual.title" = "いつもより高め";
+"guidance.above_usual.detail" = "心拍数が通常より高い状態です。";
+"guidance.below_usual.title" = "いつもより低め";
+"guidance.below_usual.detail" = "心拍数が通常より低い状態です。";
+
+"guidance.steady.detail" = "心拍数は通常の範囲内です。";
+
+"session.heat_conditions.edit" = "編集";

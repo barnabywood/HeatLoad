@@ -72,6 +72,7 @@
 "support.email.subject" = "Sauna Logサポート";
 "support.feature_request.subject" = "Sauna Log機能リクエスト";
 "support.leave_review" = "レビューを書く";
+"support.website" = "ウェブサイト";
 "support.privacy_policy" = "プライバシーポリシー";
 "support.privacy_policy_url" = "https://barnabywood.github.io/HeatLoad/privacy-policy.html";
 "support.request_feature" = "機能をリクエスト";
@@ -81,7 +82,8 @@
 "support.sync_unlock_watch" = "解除状態をWatchへ同期";
 "support.view" = "表示";
 "support.version_format" = "バージョン %@ (%@)";
-"support.watch_tip.body" = "アラート後に戻りやすくするには: iPhoneのWatchアプリ > 一般 > 時計に戻る > Sauna Log > Appに戻る。";
+"support.watch_tip.apple" = "Apple Watch: アラート後に戻りやすくするには、iPhoneのWatchアプリ > 一般 > 時計に戻る > Sauna Log。";
+"support.watch_tip.garmin" = "Garmin: Garmin Connect IQからSauna Logをインストールし、iPhoneを近くに置いて一度開きます。";
 "support.watch_tip.title" = "Watchのヒント";
 "timer.edit.alert_title" = "タイマーを編集";
 "timer.edit.message" = "タイマーの長さを分で設定します。";
@@ -157,3 +159,12 @@
 "settings.monthly_insights_notifications.subtitle" = "月間分析が準備できたら通知します。";
 
 "insights.metric.heat_load" = "ヒート負荷";
+
+"history.row.environment" = "%@ · luftfuktighet %d%%";
+
+"history.row.environment_default" = "%@ · 湿度 %d%%（デフォルト）";
+
+"temperature.unit.celsius" = "摂氏";
+"temperature.unit.fahrenheit" = "華氏";
+"settings.temperature_unit.title" = "摂氏と華氏を選択";
+"settings.temperature_unit.subtitle" = "iPhoneとApple Watchの温度表示。";

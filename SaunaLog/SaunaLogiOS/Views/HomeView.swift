@@ -4,6 +4,39 @@ import StoreKit
 import UIKit
 import WatchConnectivity
 
+private struct TimerEditAlertModifier: ViewModifier {
+    @Binding var isPresented: Bool
+    @Binding var input: String
+    let onSave: () -> Void
+
+    func body(content: Content) -> some View {
+        content.alert(L10n.string("timer.edit.alert_title"), isPresented: $isPresented) {
+            TextField(L10n.string("timer.edit.minutes_placeholder"), text: $input)
+                .keyboardType(.numberPad)
+
+            Button(L10n.string("actions.save"), action: onSave)
+            Button(L10n.string("actions.cancel"), role: .cancel) {}
+        } message: {
+            Text(verbatim: L10n.string("timer.edit.message"))
+        }
+    }
+}
+
+private struct RouteNotificationModifier: ViewModifier {
+    let onRoute: (SaunaLogLocalNotificationManager.Route) -> Void
+
+    func body(content: Content) -> some View {
+        content.onReceive(
+            NotificationCenter.default.publisher(
+                for: SaunaLogLocalNotificationManager.routeNotificationName
+            )
+        ) { notification in
+            guard let route = notification.object as? SaunaLogLocalNotificationManager.Route else { return }
+            onRoute(route)
+        }
+    }
+}
+
 struct HomeView: View {
     @Environment(\.requestReview) private var requestReview
     @Environment(\.openURL) private var openURL
@@ -14,6 +47,7 @@ struct HomeView: View {
     @StateObject private var health = HealthKitManager()
 
     @ObservedObject private var watchSync = WatchSyncManager.shared
+    @ObservedObject private var garmin = GarminCompanionManager.shared
 
     @State private var editingPresetIndex: Int?
     @State private var editingMinutesInput = ""
@@ -23,6 +57,7 @@ struct HomeView: View {
     @State private var selectedInsightOffset = 0
     @State private var pendingDeletionSession: HeatSession?
     @State private var showingDeleteConfirmation = false
+    @State private var deleteConfirmationMessage = ""
     @State private var deleteFailureMessage: String?
     @State private var hasCountedLaunch = false
     @AppStorage("ios.launchCount") private var launchCount = 0
@@ -34,6 +69,8 @@ struct HomeView: View {
         URL(string: L10n.string("support.privacy_policy_url"))
             ?? URL(string: "https://barnabywood.github.io/HeatLoad/privacy-policy.html")!
     }
+
+    private let websiteURL = URL(string: "https://saunalogapp.com")!
 
     private var contactURL: URL {
         mailURL(subjectKey: "support.email.subject")
@@ -47,116 +84,156 @@ struct HomeView: View {
         watchSync.isWatchReady
     }
 
-    var body: some View {
-        Group {
-            if showingSupport {
-                supportPage
-            } else if showingInsights {
-                insightsPage
-            } else {
-                mainPage
+    private var deleteFailureAlertPresented: Binding<Bool> {
+        Binding(
+            get: { deleteFailureMessage != nil },
+            set: { isPresented in
+                if !isPresented {
+                    deleteFailureMessage = nil
+                }
             }
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .onAppear {
-            if !hasCountedLaunch {
-                launchCount += 1
-                hasCountedLaunch = true
-            }
-            watchSync.refreshStatus()
-            scheduleWatchInstallReminderIfNeeded()
-            maybePromptForReview()
-            syncTrialStateToWatch()
-            syncPresetStateToWatch()
-            syncHeartRateAlertStateToWatch()
-        }
-        .onChange(of: trial.lifetimeSessionsCompleted) { _, _ in
-            maybePromptForReview()
-            syncTrialStateToWatch()
-        }
-        .onChange(of: trial.hasUnlocked) { _, _ in
-            syncTrialStateToWatch()
-        }
-        .onChange(of: store.presets) { _, _ in
-            syncPresetStateToWatch()
-        }
-        .onChange(of: store.selectedPresetSeconds) { _, _ in
-            syncPresetStateToWatch()
-        }
-        .onChange(of: store.minHeartRateAlertBPM) { _, _ in
-            syncHeartRateAlertStateToWatch()
-        }
-        .onChange(of: store.maxHeartRateAlertBPM) { _, _ in
-            syncHeartRateAlertStateToWatch()
-        }
-        .onChange(of: watchSync.isPaired) { _, _ in
-            scheduleWatchInstallReminderIfNeeded()
-        }
-        .onChange(of: watchSync.isWatchAppInstalled) { _, _ in
-            scheduleWatchInstallReminderIfNeeded()
-        }
-        .onReceive(NotificationCenter.default.publisher(for: SaunaLogLocalNotificationManager.routeNotificationName)) { notification in
-            guard let route = notification.object as? SaunaLogLocalNotificationManager.Route else { return }
-            handleNotificationRoute(route)
-        }
-        .alert(L10n.string("timer.edit.alert_title"), isPresented: Binding(
+        )
+    }
+
+    private var deleteFailureAlertText: String {
+        deleteFailureMessage ?? ""
+    }
+
+    private var editingAlertPresented: Binding<Bool> {
+        Binding(
             get: { editingPresetIndex != nil },
             set: { isPresented in
                 if !isPresented {
                     editingPresetIndex = nil
                 }
             }
-        )) {
-            TextField(L10n.string("timer.edit.minutes_placeholder"), text: $editingMinutesInput)
-                .keyboardType(.numberPad)
+        )
+    }
 
-            Button(L10n.string("actions.save")) {
-                saveEditedPreset()
-            }
+    private var rootPage: AnyView {
+        if showingSupport {
+            return AnyView(supportPage)
+        } else if showingInsights {
+            return AnyView(insightsPage)
+        } else {
+            return AnyView(mainPage)
+        }
+    }
 
-            Button(L10n.string("actions.cancel"), role: .cancel) {}
-        } message: {
-            Text("timer.edit.message")
-        }
-        .alert(L10n.string("history.delete.alert_title"), isPresented: $showingDeleteConfirmation, presenting: pendingDeletionSession) { session in
-            Button(L10n.string("actions.delete"), role: .destructive) {
-                Task {
-                    await MainActor.run {
-                        withAnimation(.easeInOut(duration: 0.2)) {
-                            store.deleteSession(session)
-                        }
-                        pendingDeletionSession = nil
-                    }
+    var body: some View {
+        configuredRootPage
+    }
 
-                    do {
-                        try await health.requestAuthorization()
-                        try await health.deleteSessionFromHealth(session)
-                    } catch {
-                        let nsError = error as NSError
-                        await MainActor.run {
-                            deleteFailureMessage = L10n.format(
-                                "history.delete.health_failed",
-                                nsError.domain,
-                                nsError.code,
-                                nsError.localizedDescription
-                            )
-                        }
-                    }
-                }
+    private var configuredRootPage: some View {
+        let page = AnyView(rootPage)
+        let framed = AnyView(page.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top))
+        let appeared = AnyView(framed.onAppear { handleHomeAppear() })
+        let trialChanged = AnyView(appeared.onChange(of: trial.lifetimeSessionsCompleted) { _, _ in handleTrialLifetimeChange() })
+        let unlockChanged = AnyView(trialChanged.onChange(of: trial.hasUnlocked) { _, _ in handleTrialUnlockChange() })
+        let presetsChanged = AnyView(unlockChanged.onChange(of: store.presets) { _, _ in handlePresetChange() })
+        let sessionsChanged = AnyView(presetsChanged.onChange(of: store.recentSessions.count) { _, _ in handleRecentSessionsChange() })
+        let selectedChanged = AnyView(sessionsChanged.onChange(of: store.selectedPresetSeconds) { _, _ in handleSelectedPresetChange() })
+        let minChanged = AnyView(selectedChanged.onChange(of: store.minHeartRateAlertBPM) { _, _ in handleHeartRateAlertChange() })
+        let maxChanged = AnyView(minChanged.onChange(of: store.maxHeartRateAlertBPM) { _, _ in handleHeartRateAlertChange() })
+        let temperatureChanged = AnyView(maxChanged.onChange(of: store.temperatureUnit) { _, _ in handleTemperatureUnitChange() })
+        let pairedChanged = AnyView(temperatureChanged.onChange(of: watchSync.isPaired) { _, _ in scheduleWatchInstallReminderIfNeeded() })
+        let installedChanged = AnyView(pairedChanged.onChange(of: watchSync.isWatchAppInstalled) { _, _ in scheduleWatchInstallReminderIfNeeded() })
+        let garminChanged = AnyView(installedChanged.onChange(of: garmin.hasSelectedDevice) { _, _ in
+            GarminCompanionManager.shared.sendEntitlement(
+                sessionsCompleted: trial.sessionsCompleted,
+                hasUnlocked: trial.hasUnlocked
+            )
+        })
+        let routed = AnyView(garminChanged.modifier(RouteNotificationModifier { route in handleNotificationRoute(route) }))
+        let timerEditing = AnyView(routed.modifier(TimerEditAlertModifier(isPresented: editingAlertPresented, input: $editingMinutesInput, onSave: { saveEditedPreset() })))
+        let deleteConfirmation = AnyView(timerEditing.alert(isPresented: $showingDeleteConfirmation) {
+            Alert(
+                title: Text(verbatim: L10n.string("history.delete.alert_title")),
+                message: Text(verbatim: deleteConfirmationMessage),
+                primaryButton: .destructive(Text(verbatim: L10n.string("actions.delete")), action: confirmDeletePendingSession),
+                secondaryButton: .cancel(Text(verbatim: L10n.string("actions.cancel")), action: { pendingDeletionSession = nil })
+            )
+        })
+        return AnyView(deleteConfirmation.alert(isPresented: deleteFailureAlertPresented) {
+            Alert(
+                title: Text(verbatim: L10n.string("history.delete.failed_title")),
+                message: Text(verbatim: deleteFailureAlertText),
+                dismissButton: .default(Text(verbatim: L10n.string("actions.ok")), action: { deleteFailureMessage = nil })
+            )
+        })
+    }
+
+    private func deleteSession(_ session: HeatSession) async {
+        await MainActor.run {
+            withAnimation(.easeInOut(duration: 0.2)) {
+                store.deleteSession(session)
             }
-            Button(L10n.string("actions.cancel"), role: .cancel) {
-                pendingDeletionSession = nil
-            }
-        } message: { session in
-            Text(L10n.format("history.delete.message", session.activityType.displayName.lowercased()))
+            pendingDeletionSession = nil
         }
-        .alert(L10n.string("history.delete.failed_title"), isPresented: Binding(get: { deleteFailureMessage != nil }, set: { if !$0 { deleteFailureMessage = nil } })) {
-            Button(L10n.string("actions.ok"), role: .cancel) {
-                deleteFailureMessage = nil
+
+        do {
+            try await health.requestAuthorization()
+            try await health.deleteSessionFromHealth(session)
+        } catch {
+            let nsError = error as NSError
+            let message = L10n.format(
+                "history.delete.health_failed",
+                nsError.domain,
+                nsError.code,
+                nsError.localizedDescription
+            )
+            await MainActor.run {
+                deleteFailureMessage = message
             }
-        } message: {
-            Text(deleteFailureMessage ?? "")
         }
+    }
+
+    private func handleTrialLifetimeChange() {
+        maybePromptForReview()
+        syncTrialStateToWatch()
+    }
+
+    private func handleHomeAppear() {
+        if !hasCountedLaunch {
+            launchCount += 1
+            hasCountedLaunch = true
+        }
+        watchSync.refreshStatus()
+        scheduleWatchInstallReminderIfNeeded()
+        maybePromptForReview()
+        syncTrialStateToWatch()
+        syncPresetStateToWatch()
+        syncHeartRateAlertStateToWatch()
+        syncTemperatureUnitToWatch()
+    }
+
+    private func handleTrialUnlockChange() {
+        syncTrialStateToWatch()
+    }
+
+    private func handlePresetChange() {
+        syncPresetStateToWatch()
+    }
+
+    private func handleRecentSessionsChange() {
+        maybePromptForReview()
+    }
+
+    private func handleSelectedPresetChange() {
+        syncPresetStateToWatch()
+    }
+
+    private func handleHeartRateAlertChange() {
+        syncHeartRateAlertStateToWatch()
+    }
+
+    private func handleTemperatureUnitChange() {
+        syncTemperatureUnitToWatch()
+    }
+
+    private func confirmDeletePendingSession() {
+        guard let session = pendingDeletionSession else { return }
+        Task { await deleteSession(session) }
     }
 
     private var mainPage: some View {
@@ -316,6 +393,48 @@ struct HomeView: View {
                 .foregroundStyle(.white.opacity(0.84))
         }
         .panelStyle()
+    }
+
+    private var temperatureUnitToggle: some View {
+        HStack(spacing: 12) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("settings.temperature_unit.title")
+                    .font(AppTheme.accentFont(14))
+
+                Text("settings.temperature_unit.subtitle")
+                    .font(AppTheme.bodyFont(12))
+                    .foregroundStyle(.white.opacity(0.76))
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            Spacer(minLength: 8)
+
+            Button {
+                store.setTemperatureUnit(store.temperatureUnit == .celsius ? .fahrenheit : .celsius)
+                softTap()
+            } label: {
+                HStack(spacing: 0) {
+                    temperatureUnitOption("C", selected: store.temperatureUnit == .celsius)
+                    temperatureUnitOption("F", selected: store.temperatureUnit == .fahrenheit)
+                }
+                .padding(3)
+                .background(.white.opacity(0.12), in: Capsule())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(L10n.string("settings.temperature_unit.title"))
+            .accessibilityValue(store.temperatureUnit.symbol)
+            .accessibilityHint(L10n.string("settings.temperature_unit.subtitle"))
+        }
+        .padding(10)
+        .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+    }
+
+    private func temperatureUnitOption(_ label: String, selected: Bool) -> some View {
+        Text(label)
+            .font(AppTheme.accentFont(13))
+            .foregroundStyle(selected ? AppTheme.charcoal : .white.opacity(0.82))
+            .frame(width: 30, height: 28)
+            .background(selected ? AppTheme.steam : .clear, in: Capsule())
     }
 
     private var watchStatusDetail: String {
@@ -584,6 +703,7 @@ struct HomeView: View {
             Text("support.section_title")
                 .font(AppTheme.accentFont(16))
 
+            temperatureUnitToggle
             monthlyInsightsNotificationToggle
 
             LinkRow(titleKey: "support.privacy_policy", subtitleKey: "support.view", destination: privacyPolicyURL)
@@ -611,11 +731,34 @@ struct HomeView: View {
             .buttonStyle(.plain)
             .disabled(purchase.isLoadingProducts)
 
+            Button {
+                softTap()
+                garmin.installOrConnect()
+            } label: {
+                HStack {
+                    Text(garmin.hasSelectedDevice
+                         ? (garmin.isAppInstalled ? L10n.string("garmin.sync_unlock") : L10n.string("garmin.install_app"))
+                         : L10n.string("garmin.connect_watch"))
+                        .font(AppTheme.accentFont(14))
+                        .fixedSize(horizontal: false, vertical: true)
+                    Spacer()
+                    Image(systemName: "dot.radiowaves.left.and.right")
+                        .foregroundStyle(AppTheme.steam)
+                }
+                .padding(10)
+                .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+            }
+            .buttonStyle(.plain)
+
             VStack(alignment: .leading, spacing: 4) {
                 Text("support.watch_tip.title")
                     .font(AppTheme.accentFont(13))
                     .foregroundStyle(.white)
-                Text("support.watch_tip.body")
+                Text("support.watch_tip.apple")
+                    .font(AppTheme.bodyFont(12))
+                    .foregroundStyle(.white.opacity(0.82))
+                    .fixedSize(horizontal: false, vertical: true)
+                Text("support.watch_tip.garmin")
                     .font(AppTheme.bodyFont(12))
                     .foregroundStyle(.white.opacity(0.82))
                     .fixedSize(horizontal: false, vertical: true)
@@ -638,6 +781,24 @@ struct HomeView: View {
                         .foregroundStyle(AppTheme.sand)
                 }
                 .padding(10)
+                .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+            }
+            .buttonStyle(.plain)
+
+            Button {
+                softTap()
+                openURL(websiteURL)
+            } label: {
+                HStack {
+                    Text("support.website")
+                        .font(AppTheme.accentFont(14))
+                        .fixedSize(horizontal: false, vertical: true)
+                    Spacer()
+                    Image(systemName: "globe")
+                        .foregroundStyle(AppTheme.sand)
+                }
+                .padding(10)
+                .frame(maxWidth: .infinity)
                 .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
             }
             .buttonStyle(.plain)
@@ -704,6 +865,16 @@ struct HomeView: View {
                                 .font(AppTheme.bodyFont(12))
                                 .foregroundStyle(.white.opacity(0.78))
                                 .fixedSize(horizontal: false, vertical: true)
+                            if let temperature = session.temperatureCelsius, let humidity = session.humidityPercent {
+                                Text(L10n.format(
+                                    session.environmentWasDefault == true ? "history.row.environment_default" : "history.row.environment",
+                                    store.formatTemperature(temperature),
+                                    Int(humidity.rounded())
+                                ))
+                                    .font(AppTheme.bodyFont(12))
+                                    .foregroundStyle(.white.opacity(0.78))
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(10)
@@ -716,6 +887,8 @@ struct HomeView: View {
                             Button(role: .destructive) {
                                 softTap()
                                 pendingDeletionSession = session
+                                let activityName = session.activityType.displayName.lowercased()
+                                deleteConfirmationMessage = L10n.format("history.delete.message", activityName)
                                 showingDeleteConfirmation = true
                             } label: {
                                 Label(L10n.string("actions.delete"), systemImage: "trash")
@@ -1166,6 +1339,10 @@ struct HomeView: View {
 
     private func syncHeartRateAlertStateToWatch() {
         WatchSyncManager.shared.sendHeartRateAlerts(min: store.minHeartRateAlertBPM, max: store.maxHeartRateAlertBPM)
+    }
+
+    private func syncTemperatureUnitToWatch() {
+        WatchSyncManager.shared.sendTemperatureUnit(store.temperatureUnit)
     }
 
     private func scheduleWatchInstallReminderIfNeeded() {

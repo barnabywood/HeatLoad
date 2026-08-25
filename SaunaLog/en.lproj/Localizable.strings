@@ -72,6 +72,7 @@
 "support.email.subject" = "Sauna Log Support";
 "support.feature_request.subject" = "Sauna Log Feature Request";
 "support.leave_review" = "Leave a Review";
+"support.website" = "Website";
 "support.privacy_policy" = "Privacy Policy";
 "support.privacy_policy_url" = "https://barnabywood.github.io/HeatLoad/privacy-policy.html";
 "support.request_feature" = "Request a Feature";
@@ -81,7 +82,8 @@
 "support.sync_unlock_watch" = "Sync Unlock to Watch";
 "support.view" = "View";
 "support.version_format" = "Version %@ (%@)";
-"support.watch_tip.body" = "For faster return after alerts: Watch app on iPhone > General > Return to Clock > Sauna Log > Return to App.";
+"support.watch_tip.apple" = "Apple Watch: keep Sauna Log available after alerts in Watch app on iPhone > General > Return to Clock > Sauna Log.";
+"support.watch_tip.garmin" = "Garmin: install Sauna Log from Garmin Connect IQ, then open it once while your iPhone is nearby.";
 "support.watch_tip.title" = "Watch Tip";
 "timer.edit.alert_title" = "Edit Timer";
 "timer.edit.message" = "Set the timer length in minutes.";
@@ -153,7 +155,20 @@
 "insights.window.this_year" = "This year";
 "insights.window.last_year" = "Last year";
 
-"settings.monthly_insights_notifications.title" = "Monthly insight reminders";
+"settings.monthly_insights_notifications.title" = "Monthly Insight Reminders";
 "settings.monthly_insights_notifications.subtitle" = "Notify me when monthly progress insights are ready.";
 
 "insights.metric.heat_load" = "Heat Load";
+
+"history.row.environment" = "%@ · %d%% humidity";
+
+"history.row.environment_default" = "%@ · %d%% humidity (Default)";
+
+"temperature.unit.celsius" = "Celsius";
+"temperature.unit.fahrenheit" = "Fahrenheit";
+"settings.temperature_unit.title" = "Choose between Celsius and Fahrenheit";
+"settings.temperature_unit.subtitle" = "Temperature display on iPhone and Apple Watch.";
+
+"garmin.connect_watch" = "Connect Garmin watch";
+"garmin.install_app" = "Install Garmin app";
+"garmin.sync_unlock" = "Sync unlock to Garmin";

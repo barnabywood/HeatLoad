@@ -72,6 +72,7 @@
 "support.email.subject" = "Sauna Log support";
 "support.feature_request.subject" = "Sauna Log funktionsförslag";
 "support.leave_review" = "Lämna omdöme";
+"support.website" = "Webbplats";
 "support.privacy_policy" = "Integritetspolicy";
 "support.privacy_policy_url" = "https://barnabywood.github.io/HeatLoad/privacy-policy.html";
 "support.request_feature" = "Föreslå funktion";
@@ -81,7 +82,8 @@
 "support.sync_unlock_watch" = "Synka upplåsning till klocka";
 "support.view" = "Visa";
 "support.version_format" = "Version %@ (%@)";
-"support.watch_tip.body" = "För snabbare återgång efter varningar: Watch-appen på iPhone > Allmänt > Tillbaka till klocka > Sauna Log > Tillbaka till app.";
+"support.watch_tip.apple" = "Apple Watch: återgå snabbare efter varningar via Watch-appen på iPhone > Allmänt > Tillbaka till klocka > Sauna Log.";
+"support.watch_tip.garmin" = "Garmin: installera Sauna Log från Garmin Connect IQ och öppna appen en gång medan iPhone är nära.";
 "support.watch_tip.title" = "Klocktips";
 "timer.edit.alert_title" = "Redigera timer";
 "timer.edit.message" = "Ange timerlängden i minuter.";
@@ -157,3 +159,12 @@
 "settings.monthly_insights_notifications.subtitle" = "Meddela när månadsinsikterna är klara.";
 
 "insights.metric.heat_load" = "Värmebelastning";
+
+"history.row.environment" = "%@ · %d%% luftfuktighet";
+
+"history.row.environment_default" = "%@ · %d%% luftfuktighet (standard)";
+
+"temperature.unit.celsius" = "Celsius";
+"temperature.unit.fahrenheit" = "Fahrenheit";
+"settings.temperature_unit.title" = "Välj Celsius eller Fahrenheit";
+"settings.temperature_unit.subtitle" = "Temperaturvisning på iPhone och Apple Watch.";

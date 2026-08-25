@@ -34,8 +34,20 @@ struct SaunaLogiOSApp: App {
             .environmentObject(store)
             .task {
                 WatchSyncManager.shared.activate()
+                GarminCompanionManager.shared.activate()
                 WatchSyncManager.shared.onSessionReceived = { session in
                     store.addSession(session)
+                }
+                GarminCompanionManager.shared.onSessionReceived = { session in
+                    store.addSession(session)
+                    Task { @MainActor in
+                        do {
+                            try await health.requestAuthorization()
+                            try await health.importSessionToHealth(session)
+                        } catch {
+                            // Keep the Garmin session in local history if Health access is unavailable.
+                        }
+                    }
                 }
                 WatchSyncManager.shared.onTrialProgressReceived = { sessionsCompleted, lifetimeSessionsCompleted, hasUnlocked in
                     trial.syncFromPeer(
@@ -49,7 +61,7 @@ struct SaunaLogiOSApp: App {
                     )
                 }
                 WatchSyncManager.shared.onTrialProgressRequested = {
-                    WatchSyncManager.shared.sendTrialProgress(
+                WatchSyncManager.shared.sendTrialProgress(
                         sessionsCompleted: trial.sessionsCompleted,
                         lifetimeSessionsCompleted: trial.lifetimeSessionsCompleted,
                         hasUnlocked: trial.hasUnlocked
@@ -58,14 +70,22 @@ struct SaunaLogiOSApp: App {
                 WatchSyncManager.shared.onPresetsReceived = { presets, selectedPreset in
                     store.replacePresets(presets, preferredSelected: selectedPreset)
                 }
+                WatchSyncManager.shared.onTemperatureUnitReceived = { unit in
+                    store.setTemperatureUnit(unit)
+                }
 
                 purchase.startObservingTransactions()
                 await purchase.refreshEntitlements()
                 syncTrialStateToWatch()
                 WatchSyncManager.shared.sendPresets(store.presets, selectedPresetSeconds: store.selectedPresetSeconds)
+                WatchSyncManager.shared.sendTemperatureUnit(store.temperatureUnit)
 
                 await purchase.loadProducts()
                 SaunaLogLocalNotificationManager.shared.scheduleUnlockReminderIfNeeded(
+                    sessionsCompleted: trial.sessionsCompleted,
+                    hasUnlocked: trial.hasUnlocked
+                )
+                GarminCompanionManager.shared.sendEntitlement(
                     sessionsCompleted: trial.sessionsCompleted,
                     hasUnlocked: trial.hasUnlocked
                 )
@@ -78,6 +98,9 @@ struct SaunaLogiOSApp: App {
                     // Keep local history if Health access is unavailable.
                 }
             }
+            .onOpenURL { url in
+                GarminCompanionManager.shared.handleOpenURL(url)
+            }
             .onChange(of: scenePhase) { _, phase in
                 guard phase == .active else { return }
                 SaunaLogLocalNotificationManager.shared.scheduleMonthlyInsightsNotifications()
@@ -85,7 +108,24 @@ struct SaunaLogiOSApp: App {
                 Task {
                     await purchase.refreshEntitlements()
                     syncTrialStateToWatch()
+                    WatchSyncManager.shared.sendTemperatureUnit(store.temperatureUnit)
+                    GarminCompanionManager.shared.sendEntitlement(
+                        sessionsCompleted: trial.sessionsCompleted,
+                        hasUnlocked: trial.hasUnlocked
+                    )
                 }
+            }
+            .onChange(of: trial.sessionsCompleted) { _, _ in
+                GarminCompanionManager.shared.sendEntitlement(
+                    sessionsCompleted: trial.sessionsCompleted,
+                    hasUnlocked: trial.hasUnlocked
+                )
+            }
+            .onChange(of: trial.hasUnlocked) { _, _ in
+                GarminCompanionManager.shared.sendEntitlement(
+                    sessionsCompleted: trial.sessionsCompleted,
+                    hasUnlocked: trial.hasUnlocked
+                )
             }
         }
     }

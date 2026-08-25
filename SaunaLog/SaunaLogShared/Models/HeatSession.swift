@@ -1,5 +1,48 @@
 import Foundation
 
+public enum TemperatureUnit: String, CaseIterable, Codable, Identifiable {
+    case celsius
+    case fahrenheit
+
+    public var id: String { rawValue }
+
+    public var symbol: String {
+        switch self {
+        case .celsius: return "°C"
+        case .fahrenheit: return "°F"
+        }
+    }
+
+    public var localizedName: String {
+        L10n.string(self == .celsius ? "temperature.unit.celsius" : "temperature.unit.fahrenheit")
+    }
+
+    public var displayRange: ClosedRange<Double> {
+        switch self {
+        case .celsius: return 0...120
+        case .fahrenheit: return 32...248
+        }
+    }
+
+    public func displayValue(fromCelsius celsius: Double) -> Double {
+        switch self {
+        case .celsius: return celsius
+        case .fahrenheit: return celsius * 9 / 5 + 32
+        }
+    }
+
+    public func celsiusValue(fromDisplay value: Double) -> Double {
+        switch self {
+        case .celsius: return value
+        case .fahrenheit: return (value - 32) * 5 / 9
+        }
+    }
+
+    public func format(celsius: Double) -> String {
+        "\(Int(displayValue(fromCelsius: celsius).rounded()))\(symbol)"
+    }
+}
+
 public enum HeatActivityType: String, CaseIterable, Codable, Identifiable {
     case sauna
     case steamRoom
@@ -37,6 +80,9 @@ public struct HeatSession: Codable, Identifiable {
     public let maxHeartRate: Double
     public let activeCalories: Double
     public let totalCalories: Double
+    public let temperatureCelsius: Double?
+    public let humidityPercent: Double?
+    public let environmentWasDefault: Bool?
 
     public init(
         id: UUID = UUID(),
@@ -48,7 +94,10 @@ public struct HeatSession: Codable, Identifiable {
         averageHeartRate: Double,
         maxHeartRate: Double,
         activeCalories: Double = 0,
-        totalCalories: Double = 0
+        totalCalories: Double = 0,
+        temperatureCelsius: Double? = nil,
+        humidityPercent: Double? = nil,
+        environmentWasDefault: Bool? = nil
     ) {
         self.id = id
         self.activityType = activityType
@@ -60,6 +109,9 @@ public struct HeatSession: Codable, Identifiable {
         self.maxHeartRate = maxHeartRate
         self.activeCalories = activeCalories
         self.totalCalories = totalCalories
+        self.temperatureCelsius = temperatureCelsius
+        self.humidityPercent = humidityPercent
+        self.environmentWasDefault = environmentWasDefault
     }
 
     public var actualDurationSeconds: Int {
@@ -77,6 +129,9 @@ public struct HeatSession: Codable, Identifiable {
         case maxHeartRate
         case activeCalories
         case totalCalories
+        case temperatureCelsius
+        case humidityPercent
+        case environmentWasDefault
     }
 
     public init(from decoder: Decoder) throws {
@@ -91,5 +146,8 @@ public struct HeatSession: Codable, Identifiable {
         maxHeartRate = try container.decode(Double.self, forKey: .maxHeartRate)
         activeCalories = try container.decodeIfPresent(Double.self, forKey: .activeCalories) ?? 0
         totalCalories = try container.decodeIfPresent(Double.self, forKey: .totalCalories) ?? 0
+        temperatureCelsius = try container.decodeIfPresent(Double.self, forKey: .temperatureCelsius)
+        humidityPercent = try container.decodeIfPresent(Double.self, forKey: .humidityPercent)
+        environmentWasDefault = try container.decodeIfPresent(Bool.self, forKey: .environmentWasDefault)
     }
 }

@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		B4A7A5912F3CF653002FEA11 /* SaunaLogWatchApp Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = B4A7A5872F3CF653002FEA11 /* SaunaLogWatchApp Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		C1A7A0012F3CF805002FEA11 /* ConnectIQ in Frameworks */ = {isa = PBXBuildFile; productRef = C1A7A0032F3CF805002FEA11 /* ConnectIQ */; platformFilters = (iphoneos, ); };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -46,6 +47,7 @@
 				SaunaLogShared/Models/HeatSession.swift,
 				SaunaLogShared/Models/SyncPayload.swift,
 				SaunaLogShared/Services/HealthKitManager.swift,
+				SaunaLogShared/Services/GarminCompanionManager.swift,
 				SaunaLogShared/Services/L10n.swift,
 				SaunaLogShared/Services/PurchaseManager.swift,
 				SaunaLogShared/Services/SessionStore.swift,
@@ -78,6 +80,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C1A7A0012F3CF805002FEA11 /* ConnectIQ in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -139,6 +142,7 @@
 			);
 			name = SaunaLog;
 			packageProductDependencies = (
+				C1A7A0032F3CF805002FEA11 /* ConnectIQ */,
 			);
 			productName = SaunaLog;
 			productReference = B4A7A5752F3CF566002FEA11 /* SaunaLog.app */;
@@ -198,6 +202,9 @@
 				da,
 				nl,
 			);
+			packageReferences = (
+				C1A7A0022F3CF805002FEA11 /* XCRemoteSwiftPackageReference "connectiq-companion-app-sdk-ios" */,
+			);
 			mainGroup = B4A7A56C2F3CF566002FEA11;
 			minimizedProjectReferenceProxies = 1;
 			preferredProjectObjectVersion = 77;
@@ -252,6 +259,25 @@
 			targetProxy = B4A7A58F2F3CF653002FEA11 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		C1A7A0022F3CF805002FEA11 /* XCRemoteSwiftPackageReference "connectiq-companion-app-sdk-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/garmin/connectiq-companion-app-sdk-ios";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.8.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		C1A7A0032F3CF805002FEA11 /* ConnectIQ */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C1A7A0022F3CF805002FEA11 /* XCRemoteSwiftPackageReference "connectiq-companion-app-sdk-ios" */;
+			productName = ConnectIQ;
+		};
+/* End XCSwiftPackageProductDependency section */
 
 /* Begin XCBuildConfiguration section */
 		B4A7A57E2F3CF567002FEA11 /* Debug */ = {
@@ -382,15 +408,25 @@
 				CODE_SIGN_ENTITLEMENTS = SaunaLog/SaunaLog.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 24;
+				CURRENT_PROJECT_VERSION = 35;
 				DEVELOPMENT_TEAM = 59QBGX599U;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
-				GENERATE_INFOPLIST_FILE = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = iOSInfo.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Sauna Log";
+				INFOPLIST_KEY_CFBundleURLTypes = (
+					{
+						CFBundleTypeRole = None;
+						CFBundleURLSchemes = (
+							"saunalog-ciq",
+						);
+					},
+				);
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
+				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Sauna Log uses Bluetooth to connect to your Garmin watch.";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "Sauna Log reads your heart rate during sauna and steam sessions so each session can be logged accurately to Apple Health.";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Sauna Log writes sauna and steam workout sessions, including duration and calories, to Apple Health.";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "Barnaby Wood";
@@ -403,7 +439,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 2.5;
+				MARKETING_VERSION = 3.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.barnabywood.saunalog;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
@@ -427,15 +463,25 @@
 				CODE_SIGN_ENTITLEMENTS = SaunaLog/SaunaLog.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 24;
+				CURRENT_PROJECT_VERSION = 35;
 				DEVELOPMENT_TEAM = 59QBGX599U;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
-				GENERATE_INFOPLIST_FILE = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = iOSInfo.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Sauna Log";
+				INFOPLIST_KEY_CFBundleURLTypes = (
+					{
+						CFBundleTypeRole = None;
+						CFBundleURLSchemes = (
+							"saunalog-ciq",
+						);
+					},
+				);
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
+				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Sauna Log uses Bluetooth to connect to your Garmin watch.";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "Sauna Log reads your heart rate during sauna and steam sessions so each session can be logged accurately to Apple Health.";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Sauna Log writes sauna and steam workout sessions, including duration and calories, to Apple Health.";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "Barnaby Wood";
@@ -448,7 +494,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 2.5;
+				MARKETING_VERSION = 3.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.barnabywood.saunalog;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
@@ -471,7 +517,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = "SaunaLogWatchApp Watch App/SaunaLogWatchApp Watch App.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 24;
+				CURRENT_PROJECT_VERSION = 35;
 				DEVELOPMENT_TEAM = 59QBGX599U;
 				ENABLE_PREVIEWS = NO;
 				"EXCLUDED_ARCHS[sdk=watchsimulator*]" = x86_64;
@@ -485,7 +531,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.5;
+				MARKETING_VERSION = 3.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.barnabywood.saunalog.watchkitapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = watchos;
@@ -509,7 +555,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = "SaunaLogWatchApp Watch App/SaunaLogWatchApp Watch App.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 24;
+				CURRENT_PROJECT_VERSION = 35;
 				DEVELOPMENT_TEAM = 59QBGX599U;
 				ENABLE_PREVIEWS = NO;
 				"EXCLUDED_ARCHS[sdk=watchsimulator*]" = x86_64;
@@ -523,7 +569,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.5;
+				MARKETING_VERSION = 3.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.barnabywood.saunalog.watchkitapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = watchos;

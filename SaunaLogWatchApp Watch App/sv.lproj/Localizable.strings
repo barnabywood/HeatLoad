@@ -131,8 +131,23 @@
 "guidance.settling_in.title" = "Kommer igång";
 "guidance.settling_in.detail" = "Låt värmen byggas upp.";
 "guidance.steady.title" = "Stabilt";
-"guidance.steady.detail" = "Fortsätt andas lugnt.";
 "guidance.high_strain.title" = "Hög belastning";
 "guidance.high_strain.detail" = "Överväg att lämna värmen.";
 "guidance.cool_down_soon.title" = "Kyla ner snart";
 "guidance.cool_down_soon.detail" = "Passet är snart klart.";
+
+"session.heat_conditions" = "Värme";
+"session.heat_conditions.detail" = "Justera för den här sessionen. Värdena sparas för den här värmetypen.";
+"session.temperature" = "Temperatur";
+"session.humidity" = "Luftfuktighet";
+
+"guidance.building.title" = "Stigande";
+"guidance.building.detail" = "Pulsen stiger över passets startnivå.";
+"guidance.above_usual.title" = "Över din vanliga nivå";
+"guidance.above_usual.detail" = "Pulsen ligger över din vanliga nivå.";
+"guidance.below_usual.title" = "Under din vanliga nivå";
+"guidance.below_usual.detail" = "Pulsen ligger under din vanliga nivå.";
+
+"guidance.steady.detail" = "Pulsen ligger inom din vanliga nivå.";
+
+"session.heat_conditions.edit" = "Ändra";
