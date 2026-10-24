@@ -1,0 +1,4 @@
+Contact: mailto:app.inventory.me@gmail.com
+Expires: 2027-09-12T00:00:00.000Z
+Preferred-Languages: en, de, fi, sv, ja, no, da, nl
+Canonical: https://saunalogapp.com/.well-known/security.txt
