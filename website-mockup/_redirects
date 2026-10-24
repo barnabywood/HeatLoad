@@ -10,3 +10,12 @@ https://www.saunalogapp.com/* https://saunalogapp.com/:splat 301!
 /privacy.html /privacy 301!
 /sauna-on-apple-watch.html /sauna-on-apple-watch 301!
 /sauna-calories-apple-watch.html /sauna-calories-apple-watch 301!
+/features /features.html 200
+/apple-watch /apple-watch.html 200
+/insights /insights.html 200
+/faq /faq.html 200
+/support /support.html 200
+/garmin /garmin.html 200
+/privacy /privacy.html 200
+/sauna-on-apple-watch /sauna-on-apple-watch.html 200
+/sauna-calories-apple-watch /sauna-calories-apple-watch.html 200
