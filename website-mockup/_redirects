@@ -1,2 +1,2 @@
-http://www.saunalogapp.com/* https://saunalogapp.com/:splat 301!
-https://www.saunalogapp.com/* https://saunalogapp.com/:splat 301!
+# The www-to-apex redirect is managed by the Cloudflare zone Redirect Rule.
+# Cloudflare Pages handles clean .html URLs natively.
