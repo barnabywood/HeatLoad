@@ -39,4 +39,29 @@ The site links directly to the existing policy:
 
 https://barnabywood.github.io/HeatLoad/privacy-policy.html
 
-No duplicate privacy page is included.
+The local multilingual `privacy.html` is also published; the GitHub policy remains available for existing app links.
+
+## Store click measurement
+
+Direct App Store / Connect IQ links remain in the HTML as the no-JavaScript fallback. On a real click, `script.js` changes the link to `/go/iphone` or `/go/garmin`. The Pages Function redirects to the fixed store listing with Apple's original campaign parameters intact. Other domains cannot be supplied as redirect destinations.
+
+To enable persistent aggregate click counts, add an **Analytics Engine** binding in Cloudflare Pages → `sauna-log` → Settings → Bindings, named `STORE_CLICKS`, dataset `saunalog_store_clicks`, then redeploy. The Function still redirects correctly if the binding is absent or metrics fail. There is no claim that recording is active until that binding has been added and a production click verified.
+
+The dataset fields are `blob1` store, `blob2` source page, `blob3` button placement, `blob4` Apple campaign, and `double1` count. No cookies, IP addresses, full referrer URLs or visitor identifiers are recorded by this custom metric. HEAD requests, known bot agents and prefetch requests are excluded. Other automated requests can still be counted; these are click requests, not unique humans or downloads.
+
+Example Analytics Engine query (counts respect dataset sampling):
+
+```sql
+SELECT blob1 AS store, blob2 AS page, blob3 AS placement,
+       SUM(_sample_interval * double1) AS clicks
+FROM saunalog_store_clicks
+WHERE timestamp >= NOW() - INTERVAL '30' DAY
+GROUP BY store, page, placement
+ORDER BY clicks DESC
+```
+
+Compare these counts with App Store Connect campaign downloads and purchases. The website cannot observe Garmin installations or in-app purchases directly. Cloudflare zone unique visitors are not the denominator for a reliable app purchase conversion rate.
+
+## Image delivery
+
+On-page product images use WebP at 640px and 1024px widths. Below-fold images are lazy loaded; hero images load eagerly. The original PNG files are retained for social previews and source artwork, but are not downloaded by the on-page image elements. The 96px WebP icon avoids downloading the large source PNG for the navigation logo.
